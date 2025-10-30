@@ -14,7 +14,7 @@ python 3.12.8
 | `neo4j_ingest.py` | Creates nodes (`File`, `Function`) and `CONTAINS`/`CALLS` edges in Neo4j. |
 | `requirements.txt` | Dependencies list for setup. |
 
-"""
+
 # ⚙️ Minimal Architecture
 
 ```
