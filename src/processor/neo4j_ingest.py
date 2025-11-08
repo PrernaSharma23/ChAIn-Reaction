@@ -5,6 +5,8 @@ Requires Neo4j 5 and neo4j python driver.
 from neo4j import GraphDatabase
 import json
 
+from src.util.logger import log
+
 class Neo4jIngestor:
     def __init__(self, uri, user, password):
         self.driver = GraphDatabase.driver(uri, auth=(user, password))

@@ -1,5 +1,6 @@
 import subprocess
 import re
+from src.util.logger import log
 
 def get_changed_files(base_branch="origin/main"):
     cmd = ["git", "diff", "--name-only", base_branch]

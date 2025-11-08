@@ -2,6 +2,8 @@ import os
 import json
 from tree_sitter import Language, Parser
 
+from src.util.logger import log
+
 # Load compiled language library
 LANGUAGE_LIB_PATH = os.path.join(os.path.dirname(__file__), "build/my-languages.so")
 Language.build_library(

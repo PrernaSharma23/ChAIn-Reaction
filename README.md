@@ -50,6 +50,7 @@ Usage:
 ### Setup
 1. Clone repo and install deps:
 ```bash
+python -m venv venv
 pip install -r requirements.txt
 ```
 2. Build Tree-sitter languages:
