@@ -5,18 +5,21 @@ from src.util.logger import log
 
 class ProjectService:
     def __init__(self):
-        self.repo_processor = RepoProcessor()
+        self.processor = RepoProcessor()
         self.neo_repo = Neo4jRepository()
+        self._nodes = []
+        self._edges = []
 
     def process_repository(self, repo_url: str):
-        """
-        TODO
-        Clone and process repo, generate dependency graph using Tree-sitter,
-        and store results in Neo4j.
-        """
-        # graph_data = self.repo_processor.process(repo_url)
-        # self.neo_repo.store_graph(graph_data)
-        return {"message": "Repository processed and graph created"}
+        log.info(f"Processing repository: {repo_url}")
+        data = self.processor.process(repo_url)
+        self._nodes = data.get("nodes", [])
+        self._edges = data.get("edges", [])
+        return {
+            "message": "extraction_complete",
+            "nodes": self._nodes
+            #"edges_count": len(self._edges),
+        }
 
     def get_all_nodes(self):
         return self.neo_repo.get_all_nodes()
