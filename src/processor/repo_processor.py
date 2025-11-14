@@ -15,6 +15,8 @@ class RepoProcessor:
 
     def process(self, repo_url: str):
         tmp_dir = tempfile.mkdtemp()
+        log.info(f"Cloning repo from {repo_url} into {tmp_dir}")
+        # TODO: Handle authentication for private repos
         git.Repo.clone_from(repo_url, tmp_dir)
 
         graph_data = {"nodes": [], "edges": []}

@@ -14,7 +14,7 @@ class ProjectService:
         Clone and process repo, generate dependency graph using Tree-sitter,
         and store results in Neo4j.
         """
-        # graph_data = self.repo_processor.process(repo_url)
+        graph_data = self.repo_processor.process(repo_url)
         # self.neo_repo.store_graph(graph_data)
         return {"message": "Repository processed and graph created"}
 

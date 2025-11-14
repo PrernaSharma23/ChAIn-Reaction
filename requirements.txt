@@ -8,6 +8,9 @@ matplotlib==3.10.7
 flask==3.1.2
 urllib3==2.5.0
 tree-sitter-languages==1.9.1
+SQLAlchemy==2.0.20
+psycopg2-binary==2.9.11
+PyJWT==2.8.0
 
 
 
