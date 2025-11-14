@@ -1,8 +1,9 @@
+import os
 from flask import Blueprint, request, jsonify
 from src.service.project_service import ProjectService
 from src.service.user_service import UserService
-
 from src.util.logger import log
+from src.util.async_tasks import run_async
 
 project_blueprint = Blueprint("project_controller", __name__)
 service = ProjectService()
@@ -33,10 +34,9 @@ def onboard_project():
     if not repo_url:
         return jsonify({"error": "repo_url missing"}), 400
 
-    # save repo against user (many-to-many)
-    user_repo_result = user_service.add_repository_to_user(user_id, repo_url, repo_name)
-    result = service.process_repository(user_repo_result["repo_url"])
-    out = {"processed": result, "saved_repo": user_repo_result}
+    repo = user_service.add_repository_to_user(user_id, repo_url, repo_name)
+    run_async(service.process_repository, repo["repo_name"], repo["repo_url"])
+    out = {"saved_repo": repo, "message": "Repository onboarded and processing started asynchronously"}
     return jsonify(out), 200
 
 

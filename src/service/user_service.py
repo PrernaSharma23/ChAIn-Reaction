@@ -70,4 +70,4 @@ class UserService:
         repo = self.repo.add_repo_to_user(user_id, repo_url, repo_name)
         if not repo:
             return {"error": "user not found"}, 404
-        return {"repo_url": repo["repo_url"]}
+        return repo
