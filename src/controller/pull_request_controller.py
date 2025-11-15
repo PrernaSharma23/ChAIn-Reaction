@@ -121,9 +121,6 @@ def handle_pr_event():
         run_async(_run_and_manage, repo_full_name, pr_number, key)
         log.info(f"Queued analysis for {repo_full_name}#{pr_number}")
 
-        
-        
-
         return jsonify({"message": "queued"}), 202
         
     except json.JSONDecodeError:
