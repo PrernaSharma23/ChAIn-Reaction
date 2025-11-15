@@ -1,3 +1,5 @@
+import os
+from git import rmtree
 from src.processor.repo_processor import RepoProcessor
 from src.repository.neo4j_repository import Neo4jRepository
 
