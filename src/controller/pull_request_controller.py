@@ -50,17 +50,17 @@ def _is_trigger_phrase(comment_body: str) -> bool:
         return False
     
     comment_lower = comment_body.lower()
-    return any(phrase in comment_lower for phrase in TRIGGER_PHRASES)
+    return comment_lower in TRIGGER_PHRASES
 
 def _run_and_manage(repo_name, pr_no, key):
-            ACTIVE_ANALYSES.add(key)
-            try:
-                pr_service.analyze_pr(repo_name, pr_no)
-            finally:
-                try:
-                    ACTIVE_ANALYSES.remove(key)
-                except KeyError:
-                    pass
+    ACTIVE_ANALYSES.add(key)
+    try:
+        pr_service.analyze_pr(repo_name, pr_no)
+    finally:
+        try:
+            ACTIVE_ANALYSES.remove(key)
+        except KeyError:
+            pass
 
 
 @pr_bp.route("/webhook/pr", methods=["POST"])
@@ -94,7 +94,6 @@ def handle_pr_event():
         comment = payload.get("comment", {})
         comment_body = comment.get("body", "")
         if not _is_trigger_phrase(comment_body):
-            log.info(f"Comment does not contain trigger phrase: {comment_body[:100]}")
             return jsonify({"message": "ignored"}), 200
         
 
@@ -121,9 +120,6 @@ def handle_pr_event():
 
         run_async(_run_and_manage, repo_full_name, pr_number, key)
         log.info(f"Queued analysis for {repo_full_name}#{pr_number}")
-
-        
-        
 
         return jsonify({"message": "queued"}), 202
         
