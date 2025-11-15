@@ -36,105 +36,57 @@ class PullRequestService:
             log.error(f"Error fetching PR diff: {e}")
             return None
 
-    def analyze_diff(self, diff_content: str) -> dict:
-        from tempfile import TemporaryDirectory
+    def analyze_diff(self, files_content: dict) -> dict:
         from src.processor.tree_sitter_extractor import TreeSitterExtractor
 
         try:
-            # --- STEP 1: Parse unified diff into files ------------
-            files = {}
-            current_file = None
-            old_lines = []
-            new_lines = []
-
-            for line in diff_content.split("\n"):
-                if line.startswith("diff --git"):
-                    # save previous file
-                    if current_file:
-                        files[current_file] = {
-                            "old": "\n".join(old_lines),
-                            "new": "\n".join(new_lines),
-                        }
-                    # start new file
-                    parts = line.split(" ")
-                    if len(parts) >= 3:
-                        current_file = parts[2][2:]  # remove a/
-                    old_lines, new_lines = [], []
-
-                elif line.startswith("--- "):
-                    continue
-                elif line.startswith("+++ "):
-                    continue
-
-                elif line.startswith("-") and not line.startswith("---"):
-                    old_lines.append(line[1:])
-                elif line.startswith("+") and not line.startswith("+++"):
-                    new_lines.append(line[1:])
-                else:
-                    old_lines.append(line)
-                    new_lines.append(line)
-
-            if current_file:
-                files[current_file] = {
-                    "old": "\n".join(old_lines),
-                    "new": "\n".join(new_lines),
-                }
-
-            # --- STEP 2: Extract AST for old and new versions -------
             extractor = TreeSitterExtractor()
-            changed_nodes = {}
+            all_nodes, all_edges = [], []
 
-            with TemporaryDirectory() as tmpdir:
-                for file_path, versions in files.items():
-                    filepath_old = os.path.join(tmpdir, "old_" + file_path.replace("/", "_"))
-                    filepath_new = os.path.join(tmpdir, "new_" + file_path.replace("/", "_"))
+            for file_path, content in files_content.items():
+                lang = extractor.get_language(file_path)
+                if not lang:
+                    continue
 
-                    # write reconstructed versions
-                    with open(filepath_old, "w", encoding="utf-8") as f:
-                        f.write(versions["old"])
-                    with open(filepath_new, "w", encoding="utf-8") as f:
-                        f.write(versions["new"])
+                symbols = extractor.extract_from_string(content, file_path, lang)
+                file_result = {"symbols": symbols, "language": lang}
 
-                    ext = os.path.splitext(file_path)[1]
-                    lang = extractor._get_language_for_file("dummy" + ext)
-                    if not lang:
-                        continue
+                nodes = extractor.convert_symbols_to_nodes("repo", file_path, file_result)
+                edges = extractor.derive_edges_from_symbols("repo", file_path, file_result)
 
-                    old_ast = extractor.extract_from_file(filepath_old, lang)
-                    new_ast = extractor.extract_from_file(filepath_new, lang)
+                all_nodes += nodes
+                all_edges += edges
 
-                    # --- STEP 3: Compare AST symbols -------------
-                    added = [node for node in new_ast if node not in old_ast]
-                    removed = [node for node in old_ast if node not in new_ast]
-
-                    if added or removed:
-                        changed_nodes[file_path] = {
-                            "added": added,
-                            "removed": removed
-                        }
-
-            return {
-                "changed_files": len(changed_nodes),
-                "details": changed_nodes,
-            }
+            return {"nodes": all_nodes, "edges": all_edges}
 
         except Exception as e:
             log.error(f"Error analyzing diff: {e}")
             return {"error": str(e)}
 
+
     def analyze_pr(self, repo_full_name: str, pr_number: int) -> dict:
-        try : 
+        try:
             log.info(f"Analyzing PR {repo_full_name}#{pr_number}")
             files = self.get_pr_diff_files(repo_full_name, pr_number)
+            if not files:
+                return {"nodes": [], "edges": []}
+
+            # Prepare a dict of {filename: content} for analyze_diff
+            files_content = {}
             for f in files:
-                print(f["filename"], f["status"], f["sha"])
                 file_content = self.download_file(repo_full_name, f["sha"])
-            #TODO: parse file content via AST and build delta graph
-            result =""
-            
-            if result:
-                result_comment = f"## 🔗 ChAIn Reaction Analysis Results\n\n{str(result)}\n\n*Analysis complete.*"
+                files_content[f["filename"]] = file_content
+
+            # Call analyze_diff to generate AST nodes and edges
+            result = self.analyze_diff(files_content)
+
+            if result.get("nodes") or result.get("edges"):
+                result_comment = (
+                    f"## 🔗 ChAIn Reaction Analysis Results\n\n"
+                    f"Nodes: {len(result.get('nodes', []))}, Edges: {len(result.get('edges', []))}\n\n*Analysis complete.*"
+                )
                 self.notification_service.post_comment(repo_full_name, pr_number, result_comment)
+
             return result
         except Exception as e:
             log.error(f"Error analyzing PR: {e}")
