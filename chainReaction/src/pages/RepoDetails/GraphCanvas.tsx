@@ -3,14 +3,15 @@ import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { NodeDatum, EdgeDatum } from "./types";
 import "./GraphCanvas.scss";
+import { getRepoName } from "./Utils";
 
 export default function GraphCanvas({
   graphData,
   width = 1000,
   height = 640,
   addEdgeMode = false,
-  primaryRepo,
-  secondRepo,
+  primaryRepoId,
+  secondRepoId,
   onEdgeDragComplete,
   selectedNodeId,
   setSelectedNodeId,
@@ -19,8 +20,8 @@ export default function GraphCanvas({
   width?: number;
   height?: number;
   addEdgeMode?: boolean;
-  primaryRepo?: string;
-  secondRepo?: string | null;
+  primaryRepoId?: string;
+  secondRepoId?: string | null;
   onEdgeDragComplete?: (s: string, t: string) => void;
   selectedNodeId?: string | null;
   setSelectedNodeId?: (id: string | null) => void;
@@ -44,11 +45,11 @@ export default function GraphCanvas({
     svg.attr("viewBox", `0 0 ${SVG_W} ${SVG_H}`);
 
     // lookups
-    const idToRepo = new Map<string, string | undefined>();
+    const NodeIdToRepoId = new Map<string, string | undefined>();
     const repoSet = new Set<string>();
     nodes.forEach((n) => {
       if (n.repo) repoSet.add(n.repo);
-      idToRepo.set(n.id, n.repo);
+      NodeIdToRepoId.set(n.id, n.repo);
     });
 
     const clean = (repo?: string) => (repo ?? "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -58,8 +59,8 @@ export default function GraphCanvas({
     const linksForD3 = edges
       .map((e) => ({ source: e.from, target: e.to, type: e.type }))
       .filter((l) => {
-        const hasSrc = idToRepo.has(l.source as string);
-        const hasTgt = idToRepo.has(l.target as string);
+        const hasSrc = NodeIdToRepoId.has(l.source as string);
+        const hasTgt = NodeIdToRepoId.has(l.target as string);
         if (!hasSrc || !hasTgt) {
           missingEdges.push({ from: l.source as string, to: l.target as string, type: l.type });
           return false;
@@ -156,7 +157,7 @@ export default function GraphCanvas({
     const legend = svg.append("g").attr("transform", "translate(20,20)");
     Array.from(repoSet).forEach((repo, i) => {
       legend.append("circle").attr("cx", 0).attr("cy", i * 22).attr("r", 6).attr("fill", repoColors(repo!));
-      legend.append("text").attr("x", 12).attr("y", i * 22 + 4).attr("class", "legend-text").text(repo!).style("fill", "#ffffff");
+      legend.append("text").attr("x", 12).attr("y", i * 22 + 4).attr("class", "legend-text").text(getRepoName(repo!)).style("fill", "#ffffff");
     });
 
     // forces
@@ -184,9 +185,9 @@ export default function GraphCanvas({
 
     const getRepoFrom = (side: any) => {
       if (!side) return undefined;
-      if (typeof side === "string") return idToRepo.get(side);
+      if (typeof side === "string") return NodeIdToRepoId.get(side);
       if ((side as any).repo) return (side as any).repo;
-      if ((side as any).id) return idToRepo.get((side as any).id);
+      if ((side as any).id) return NodeIdToRepoId.get((side as any).id);
       return undefined;
     };
 
@@ -252,8 +253,8 @@ export default function GraphCanvas({
 
     nodeG.on("mousedown", (event: any, d: NodeDatum) => {
       if (!addEdgeMode) return;
-      const allowedRepos = new Set([primaryRepo, secondRepo]);
-      if (!allowedRepos.has(d.repo ?? "")) return;
+      const allowedReposIds = new Set([primaryRepoId, secondRepoId]);
+      if (!allowedReposIds.has(d.repo ?? "")) return;
 
        // left-click only
       if (event.button && event.button !== 0) return;
@@ -319,8 +320,8 @@ export default function GraphCanvas({
         return;
       }
 
-      const allowedRepos = new Set([primaryRepo, secondRepo]);
-      if (!allowedRepos.has(sourceNode.repo ?? "") || !allowedRepos.has(hoveredNode.repo ?? "")) {
+      const allowedReposIds = new Set([primaryRepoId, secondRepoId]);
+      if (!allowedReposIds.has(sourceNode.repo ?? "") || !allowedReposIds.has(hoveredNode.repo ?? "")) {
         sourceNode = null;
         hoveredNode = null;
         return;
@@ -413,7 +414,7 @@ export default function GraphCanvas({
       simulation.stop();
       d3.select(window).on("mousemove.dragcreate", null).on("mouseup.dragcreate", null);
     };
-  }, [graphData, width, height, addEdgeMode, primaryRepo, secondRepo, onEdgeDragComplete, selectedNodeId, setSelectedNodeId]);
+  }, [graphData, width, height, addEdgeMode, primaryRepoId, secondRepoId, onEdgeDragComplete, selectedNodeId, setSelectedNodeId]);
 
   return (
     <div className="repo-details-outer" ref={containerRef}>

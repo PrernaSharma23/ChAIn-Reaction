@@ -21,7 +21,7 @@ export default function App() {
         />
 
         <Route
-          path="/repo-details/:repoName"
+          path="/repo-details/:repoId"
           element={
             <ProtectedRoute>
               <RepoDetails />

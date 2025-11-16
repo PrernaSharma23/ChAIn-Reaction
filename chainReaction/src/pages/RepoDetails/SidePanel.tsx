@@ -2,27 +2,28 @@
 import React from "react";
 import RepoPickerModal from "./RepoPickerModal";
 import "./SidePanel.scss";
+import { getRepoName } from "./Utils";
 
 export default function SidePanel({
-  repoName,
+  primaryRepoId,
   viewType,
   setViewType,
-  secondRepo,
-  setSecondRepo,
+  secondRepoId,
+  setSecondRepoId,
   showRepoPicker,
   setShowRepoPicker,
-  allRepos,
+  allReposIds,
   addEdgeMode,
   setAddEdgeMode,
 }: {
-  repoName: string;
+  primaryRepoId: string;
   viewType: "intra" | "inter";
   setViewType: (v: "intra" | "inter") => void;
-  secondRepo: string | null;
-  setSecondRepo: (r: string | null) => void;
+  secondRepoId: string | null;
+  setSecondRepoId: (r: string | null) => void;
   showRepoPicker: boolean;
   setShowRepoPicker: (b: boolean) => void;
-  allRepos: string[];
+  allReposIds: string[];
   addEdgeMode: boolean;
   setAddEdgeMode: (b: boolean) => void;
 }) {
@@ -41,7 +42,7 @@ export default function SidePanel({
 
         <div className="section">
           <div className="label">Primary Repo</div>
-          <div className="value">{repoName || "-"}</div>
+          <div className="value">{getRepoName(primaryRepoId) || "-"}</div>
         </div>
 
         <div className="section">
@@ -51,7 +52,7 @@ export default function SidePanel({
               className={`seg ${viewType === "intra" ? "active" : ""}`}
               onClick={() => {
                 setViewType("intra");
-                setSecondRepo(null);
+                setSecondRepoId(null);
                 setAddEdgeMode(false);
               }}
             >
@@ -70,7 +71,7 @@ export default function SidePanel({
         {viewType === "inter" && (
           <div className="section">
             <div className="label">Second Repo</div>
-            <div className="value">{secondRepo ?? <em>Not selected</em>}</div>
+            <div className="value">{getRepoName(secondRepoId ?? '') ?? <em>Not selected</em>}</div>
 
             <div className="controls-row">
               <button className="ghost" onClick={() => setShowRepoPicker(true)}>
@@ -80,7 +81,7 @@ export default function SidePanel({
               {/* Add dependency button only visible in inter view */}
               <button
                 className={`primary ${addEdgeMode ? "active-mode" : ""}`}
-                disabled={!secondRepo}
+                disabled={!secondRepoId}
                 onClick={() => setAddEdgeMode(!addEdgeMode)}
                 title={addEdgeMode ? "Cancel add dependency" : "Add dependency (drag from source to target)"}
               >
@@ -101,9 +102,11 @@ export default function SidePanel({
 
       <RepoPickerModal
         isOpen={showRepoPicker}
-        options={allRepos.filter((r) => r !== repoName)}
+        options={allReposIds
+          .filter((r) => r !== primaryRepoId)
+          .map((id) => ({ id, name: getRepoName(id) }))}
         onSelect={(r) => {
-          setSecondRepo(r);
+          setSecondRepoId(r);
           setShowRepoPicker(false);
         }}
         onClose={() => setShowRepoPicker(false)}

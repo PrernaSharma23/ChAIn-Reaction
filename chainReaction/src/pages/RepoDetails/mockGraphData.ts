@@ -3,19 +3,19 @@ import type { NodeDatum, EdgeDatum } from "./types";
 
 const mockGraphData = {
   repoANodes: [
-    { id: "topic_payment", repo: "repoA", type: "TOPIC", name: "Topic Payment" },
-    { id: "topic_orders", repo: "repoA", type: "TOPIC", name: "Topic Orders" },
-    { id: "service_a1", repo: "repoA", type: "SERVICE", name: "Service A1" },
-    { id: "service_a2", repo: "repoA", type: "SERVICE", name: "service A2" },
+    { id: "topic_payment", repo: "5590f84c-cd48-47dc-bea0-0d6223dfddf2", type: "TOPIC", name: "Topic Payment" },
+    { id: "topic_orders", repo: "5590f84c-cd48-47dc-bea0-0d6223dfddf2", type: "TOPIC", name: "Topic Orders" },
+    { id: "service_a1", repo: "5590f84c-cd48-47dc-bea0-0d6223dfddf2", type: "SERVICE", name: "Service A1" },
+    { id: "service_a2", repo: "5590f84c-cd48-47dc-bea0-0d6223dfddf2", type: "SERVICE", name: "service A2" },
   ],
   repoBNodes: [
-    { id: "consumer1", repo: "repoB", type: "FUNCTION", name: "Consumer 1" },
-    { id: "service_b1", repo: "repoB", type: "SERVICE", name: "service B1" },
-    { id: "service_b2", repo: "repoB", type: "SERVICE", name: "service B2" },
+    { id: "consumer1", repo: "2", type: "FUNCTION", name: "Consumer 1" },
+    { id: "service_b1", repo: "2", type: "SERVICE", name: "service B1" },
+    { id: "service_b2", repo: "2", type: "SERVICE", name: "service B2" },
   ],
   repoCNodes: [
-    { id: "util_x", repo: "repoC", type: "SERVICE", name: "Util X" },
-    { id: "util_y", repo: "repoC", type: "SERVICE", name: "Util Y" },
+    { id: "util_x", repo: "8", type: "SERVICE", name: "Util X" },
+    { id: "util_y", repo: "8", type: "SERVICE", name: "Util Y" },
   ],
 
   edges: [

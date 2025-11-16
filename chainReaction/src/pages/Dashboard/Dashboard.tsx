@@ -1,18 +1,22 @@
 // src/pages/dashboard/Dashboard.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { repos } from "../../data/repos";
 import "./Dashboard.scss";
+import { getRepoMap } from "../RepoDetails/Utils";
+import { map } from "lodash";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [selectedRepo, setSelectedRepo] = useState("");
+  const [selectedRepoId, setSelectedRepoId] = useState("");
+
+  const repoMap = getRepoMap();
+  const options = map(repoMap, (name, id) => ({ id, name }));  
 
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const repo = e.target.value;
-    setSelectedRepo(repo);
+    const repoId = e.target.value;
+    setSelectedRepoId(repoId);
 
-    if (repo) navigate(`/repo-details/${repo}`);
+    if (repoId) navigate(`/repo-details/${repoId}`);
   };
 
   return (
@@ -33,16 +37,16 @@ export default function Dashboard() {
 
             <select
               className="dashboard-dropdown large"
-              value={selectedRepo}
+              value={selectedRepoId}
               onChange={handleSelect}
             >
               <option value="">-- Select Repository --</option>
 
-              {repos.map((repo) => (
-                <option key={repo} value={repo}>
-                  {repo}
-                </option>
-              ))}
+              {options.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.name}
+              </option>
+            ))}
             </select>
           </div>
         </div>

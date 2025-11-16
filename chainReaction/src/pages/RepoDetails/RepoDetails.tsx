@@ -7,13 +7,16 @@ import SidePanel from "./SidePanel";
 import AddDependencyModal from "./AddDependencyModal";
 import type { NodeDatum, EdgeDatum } from "./types";
 import "./RepoDetails.scss";
+import { getAllRepoIds } from "./Utils";
 
 export default function RepoDetails() {
-  const { repoName } = useParams();
-  const primaryRepo = repoName ?? "";
+  const { repoId } = useParams();
+
+  // repoName is actually repoId from the URL
+  const primaryRepoId = repoId ?? "";
 
   const [viewType, setViewType] = useState<"intra" | "inter">("intra");
-  const [secondRepo, setSecondRepo] = useState<string | null>(null);
+  const [secondRepoId, setSecondRepoId] = useState<string | null>(null);
   const [showRepoPicker, setShowRepoPicker] = useState(false);
 
   // Add-dependency workflow
@@ -42,29 +45,26 @@ export default function RepoDetails() {
   const [localNodes, setLocalNodes] = useState<NodeDatum[]>(initial.nodes);
   const [localEdges, setLocalEdges] = useState<EdgeDatum[]>(initial.edges);
 
-  // List all repos
-  const allRepos = useMemo(() => {
-    const s = new Set<string>();
-    localNodes.forEach((n) => n.repo && s.add(n.repo));
-    return Array.from(s);
-  }, [localNodes]);
-
   // Filtered graph data based on viewType
   const filteredGraphData = useMemo(() => {
     if (viewType === "intra") {
-      const nodes = localNodes.filter((n) => n.repo === primaryRepo);
+      const nodes = localNodes.filter((n) => n.repo === primaryRepoId);
       const allowed = new Set(nodes.map((n) => n.id));
       const edges = localEdges.filter((e) => allowed.has(e.from) && allowed.has(e.to));
       return { nodes, edges };
     }
 
-    const nodes = localNodes.filter((n) => n.repo === primaryRepo || n.repo === secondRepo);
+    const nodes = localNodes.filter(
+      (n) => n.repo === primaryRepoId || n.repo === secondRepoId
+    );
 
     const allowed = new Set(nodes.map((n) => n.id));
-    const edges = localEdges.filter((e) => allowed.has(e.from) && allowed.has(e.to));
+    const edges = localEdges.filter(
+      (e) => allowed.has(e.from) && allowed.has(e.to)
+    );
 
     return { nodes, edges };
-  }, [localNodes, localEdges, viewType, primaryRepo, secondRepo]);
+  }, [localNodes, localEdges, viewType, primaryRepoId, secondRepoId]);
 
   // Called by GraphCanvas on drag completion
   const handleEdgeDragComplete = (sourceId: string, targetId: string) => {
@@ -79,12 +79,12 @@ export default function RepoDetails() {
     }
 
     // only inter view + secondRepo selected
-    if (viewType !== "inter" || !secondRepo) {
+    if (viewType !== "inter" || !secondRepoId) {
       setAddEdgeMode(false);
       return;
     }
 
-    const allowedRepos = new Set([primaryRepo, secondRepo]);
+    const allowedRepos = new Set([primaryRepoId, secondRepoId]);
     if (!allowedRepos.has(s.repo ?? "") || !allowedRepos.has(t.repo ?? "")) {
       setAddEdgeMode(false);
       return;
@@ -102,14 +102,10 @@ export default function RepoDetails() {
     // Immediate local update (optimistic)
     setLocalEdges((prev) => [...prev, newEdge]);
 
-// Cleanup modal + mode
+    // Cleanup modal + mode
     setShowAddModal(false);
     setAddEdgeMode(false);
     setPendingEdge(null);
-
-    // Note: persistence disabled for local dev. Add your API call if needed.
-
-    console.log();
 
     // // backend call
     // try {
@@ -145,32 +141,32 @@ export default function RepoDetails() {
         graphData={filteredGraphData}
         addEdgeMode={addEdgeMode}
         onEdgeDragComplete={handleEdgeDragComplete}
-        primaryRepo={primaryRepo}
-        secondRepo={secondRepo}
+        primaryRepoId={primaryRepoId}
+        secondRepoId={secondRepoId}
         selectedNodeId={selectedNodeId}
         setSelectedNodeId={setSelectedNodeId}
       />
 
       <SidePanel
-        repoName={primaryRepo}
+        primaryRepoId={primaryRepoId}
         viewType={viewType}
         setViewType={(v) => {
           setViewType(v);
           if (v === "intra") {
-            setSecondRepo(null);
+            setSecondRepoId(null);
             setShowRepoPicker(false);
           }
           setAddEdgeMode(false);
           setSelectedNodeId(null);
         }}
-        secondRepo={secondRepo}
-        setSecondRepo={(r) => {
-          setSecondRepo(r);
+        secondRepoId={secondRepoId}
+        setSecondRepoId={(r) => {
+          setSecondRepoId(r);
           setSelectedNodeId(null);
         }}
         showRepoPicker={showRepoPicker}
         setShowRepoPicker={setShowRepoPicker}
-        allRepos={allRepos}
+        allReposIds={getAllRepoIds()}
         addEdgeMode={addEdgeMode}
         setAddEdgeMode={setAddEdgeMode}
       />

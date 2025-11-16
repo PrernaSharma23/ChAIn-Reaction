@@ -1,53 +1,67 @@
+// src/pages/LoginPage/LoginPage.tsx
+
 import React, { useState } from "react";
 import "./LoginPage.scss";
 import { loginUser } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-    const handleLogin = () => {
-        const success = loginUser(username, password);
+  const handleLogin = async () => {
+    setError("");
 
-        if (success) {
-            navigate("/dashboard");
-        } else {
-            setError("Invalid username or password");
-        }
-    };
+    const result = await loginUser(username, password);
 
-    return (
-        <div className="login-container">
-            <div className="login-wrapper">
-                <div className="login-left">
-                    <h2 className="login-title">Login</h2>
-                    <p className="login-subtitle">Sign In to your account</p>
+    if (result.success) {
+      navigate("/dashboard");
+    } else {
+      setError(result.error || "Invalid username or password");
+    }
+  };
 
-                    <label className="input-label">Username</label>
-                    <div className="input-wrapper">
-                        <span className="input-icon">👤</span>
-                        <input type="text" className="input-field" value={username}
-                            onChange={(e) => setUsername(e.target.value)} />
-                    </div>
+  return (
+    <div className="login-container">
+      <div className="login-wrapper">
+        <div className="login-left">
+          <h2 className="login-title">Login</h2>
+          <p className="login-subtitle">Sign In to your account</p>
 
-                    <label className="input-label">Password</label>
-                    <div className="input-wrapper">
-                        <span className="input-icon">🔒</span>
-                        <input type="password" className="input-field" value={password}
-              onChange={(e) => setPassword(e.target.value)} />
-                    </div>
+          <label className="input-label">Username</label>
+          <div className="input-wrapper">
+            <span className="input-icon">👤</span>
+            <input
+              type="text"
+              className="input-field"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
 
-                    {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
+          <label className="input-label">Password</label>
+          <div className="input-wrapper">
+            <span className="input-icon">🔒</span>
+            <input
+              type="password"
+              className="input-field"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
 
-                    <button className="login-btn" onClick={handleLogin}>Login</button>
-                </div>
+          {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
 
-                <div className="login-right">
-                    {/* Dependency-Track style logo (SVG) */}
+          <button className="login-btn" onClick={handleLogin}>
+            Login
+          </button>
+        </div>
+
+        <div className="login-right">
+          {/* Dependency-Track style logo (SVG) */}
                     <svg
                         className="logo-svg"
                         viewBox="0 0 200 200"
@@ -73,8 +87,8 @@ export default function LoginPage() {
                     <h1 className="brand-text">
                         chAIn- <span>reaction</span>
                     </h1>
-                </div>
-            </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 }

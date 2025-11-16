@@ -2,10 +2,15 @@
 import React from "react";
 import "./RepoPickerModal.scss";
 
+interface RepoOption {
+  id: string;
+  name: string;
+}
+
 interface RepoPickerModalProps {
   isOpen: boolean;
-  options: string[];
-  onSelect: (repo: string) => void;
+  options: RepoOption[];
+  onSelect: (repoId: string) => void;
   onClose: () => void;
 }
 
@@ -40,9 +45,9 @@ export default function RepoPickerModal({
             onChange={(e) => setTemp(e.target.value)}
           >
             <option value="">-- Choose repo --</option>
-            {options.map((repo) => (
-              <option key={repo} value={repo}>
-                {repo}
+            {options.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.name}
               </option>
             ))}
           </select>
@@ -57,7 +62,7 @@ export default function RepoPickerModal({
             className="btn primary"
             disabled={!temp}
             onClick={() => {
-              onSelect(temp);
+              onSelect(temp); // pass ID
               onClose();
             }}
           >

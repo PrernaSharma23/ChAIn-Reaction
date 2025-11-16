@@ -1,23 +1,39 @@
-// authService.ts
-import { mockUsers } from "../data/mockUsers";
+// src/services/authService.ts
 
-export function loginUser(username: string, password: string) {
-  const user = mockUsers.find(
-    (u) => u.username === username && u.password === password
-  );
+export async function loginUser(username: string, password: string) {
+  try {
+    const res = await fetch("https://misty-mousy-unseparately.ngrok-free.dev/api/user/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
 
-  if (user) {
-    localStorage.setItem("isLoggedIn", "true");
-    return true;
+    if (!res.ok) return { success: false, error: "Invalid credentials" };
+
+    const data = await res.json();
+
+    // Extract & normalize repos
+    const repoMap: Record<string, string> = {};
+    (data.profile?.repos || []).forEach((r: any) => {
+      repoMap[String(r.id)] = r.name;  // ID → string
+    });
+
+    // Save minimal info in sessionStorage
+    sessionStorage.setItem("isLoggedIn", "true");
+    sessionStorage.setItem("token", data.token);
+    sessionStorage.setItem("repoMap", JSON.stringify(repoMap));
+
+    return { success: true };
+
+  } catch (err) {
+    return { success: false, error: "Network error" };
   }
-
-  return false;
 }
 
 export function isLoggedIn() {
-  return localStorage.getItem("isLoggedIn") === "true";
+  return sessionStorage.getItem("isLoggedIn") === "true";
 }
 
 export function logoutUser() {
-  localStorage.removeItem("isLoggedIn");
+  sessionStorage.clear();
 }
