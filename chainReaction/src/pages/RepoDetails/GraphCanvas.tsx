@@ -1,4 +1,4 @@
-// GraphCanvas.tsx — defensive, restart-on-update edition with node click highlighting
+// GraphCanvas.tsx — defensive, restart-on-update edition
 import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { NodeDatum, EdgeDatum } from "./types";
@@ -12,8 +12,6 @@ export default function GraphCanvas({
   primaryRepo,
   secondRepo,
   onEdgeDragComplete,
-  selectedNodeId,
-  setSelectedNodeId,
 }: {
   graphData: { nodes: NodeDatum[]; edges: EdgeDatum[] } | null | undefined;
   width?: number;
@@ -22,8 +20,6 @@ export default function GraphCanvas({
   primaryRepo?: string;
   secondRepo?: string | null;
   onEdgeDragComplete?: (s: string, t: string) => void;
-  selectedNodeId?: string | null;
-  setSelectedNodeId?: (id: string | null) => void;
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -71,6 +67,7 @@ export default function GraphCanvas({
       });
 
     if (missingEdges.length > 0) {
+      // Helpful debug log: shows edges that are being skipped so you can see if filtering caused missing nodes
       console.warn("[GraphCanvas] Skipping edges whose endpoints are missing from current nodes:", missingEdges);
     }
 
@@ -115,19 +112,6 @@ export default function GraphCanvas({
       .attr("d", "M 0 0 L 10 5 L 0 10 z")
       .attr("fill", interColor)
       .attr("stroke", "none");
-
-    // --- glow filter for highlighting selected edges ---
-    const glow = defs
-      .append("filter")
-      .attr("id", "edge-glow")
-      .attr("x", "-50%")
-      .attr("y", "-50%")
-      .attr("width", "200%")
-      .attr("height", "200%");
-    glow.append("feGaussianBlur").attr("stdDeviation", 4).attr("result", "coloredBlur");
-    const feMerge = glow.append("feMerge");
-    feMerge.append("feMergeNode").attr("in", "coloredBlur");
-    feMerge.append("feMergeNode").attr("in", "SourceGraphic");
 
     const gMain = svg.append("g").attr("class", "g-main");
 
@@ -260,19 +244,6 @@ export default function GraphCanvas({
       event.stopPropagation();
     });
 
-    // --- NEW: click handler for selection (only when NOT in addEdgeMode) ---
-    nodeG.on("click", (event: any, d: NodeDatum) => {
-      // if addEdgeMode active, clicks are used for edge-drag flow — do not toggle selection
-      if (addEdgeMode) return;
-
-      // toggle selection
-      if (selectedNodeId === d.id) {
-        setSelectedNodeId?.(null);
-      } else {
-        setSelectedNodeId?.(d.id);
-      }
-    });
-
     const onMove = (event: MouseEvent) => {
       if (!isDrawing || !tempLine) return;
       const pt = d3.pointer(event, svg.node());
@@ -323,52 +294,13 @@ export default function GraphCanvas({
     // restart simulation to ensure newly added links settle into place
     simulation.alpha(0.8).restart();
 
-    // tick: update positions and highlight logic based on selectedNodeId
+    // tick: update positions
     simulation.on("tick", () => {
       linkLines
         .attr("x1", (d: any) => (d.source && typeof d.source.x === "number" ? d.source.x : 0))
         .attr("y1", (d: any) => (d.source && typeof d.source.y === "number" ? d.source.y : 0))
         .attr("x2", (d: any) => (d.target && typeof d.target.x === "number" ? d.target.x : 0))
         .attr("y2", (d: any) => (d.target && typeof d.target.y === "number" ? d.target.y : 0));
-
-      // Highlighting logic:
-      linkLines
-        .attr("stroke-opacity", (d: any) => {
-          if (!selectedNodeId) return 0.95;
-          const sId = (d.source as any).id ?? d.source;
-          const tId = (d.target as any).id ?? d.target;
-          return sId === selectedNodeId || tId === selectedNodeId ? 1 : 0.12;
-        })
-        .attr("stroke-width", (d: any) => {
-          if (!selectedNodeId) return 2.2;
-          const sId = (d.source as any).id ?? d.source;
-          const tId = (d.target as any).id ?? d.target;
-          return sId === selectedNodeId || tId === selectedNodeId ? 3.2 : 1;
-        })
-        .attr("filter", (d: any) => {
-          if (!selectedNodeId) return null;
-          const sId = (d.source as any).id ?? d.source;
-          const tId = (d.target as any).id ?? d.target;
-          return sId === selectedNodeId || tId === selectedNodeId ? "url(#edge-glow)" : null;
-        });
-
-      // node circle highlighting & opacity
-      nodeG.selectAll("circle")
-        .attr("stroke-width", (d: any) => {
-          if (!selectedNodeId) return 3;
-          return d.id === selectedNodeId ? 5 : 2;
-        })
-        .attr("opacity", (d: any) => {
-          if (!selectedNodeId) return 1;
-          return d.id === selectedNodeId ? 1 : 0.45;
-        });
-
-      // optionally adjust node labels opacity
-      nodeG.selectAll("text.node-label")
-        .attr("opacity", (d: any) => {
-          if (!selectedNodeId) return 1;
-          return d.id === selectedNodeId ? 1 : 0.6;
-        });
 
       linkGroup.selectAll("text").attr("x", (d: any) => ((d.source?.x ?? 0) + (d.target?.x ?? 0)) / 2).attr("y", (d: any) => ((d.source?.y ?? 0) + (d.target?.y ?? 0)) / 2);
 
@@ -380,7 +312,7 @@ export default function GraphCanvas({
       simulation.stop();
       d3.select(window).on("mousemove.dragcreate", null).on("mouseup.dragcreate", null);
     };
-  }, [graphData, width, height, addEdgeMode, primaryRepo, secondRepo, onEdgeDragComplete, selectedNodeId, setSelectedNodeId]);
+  }, [graphData, width, height, addEdgeMode, primaryRepo, secondRepo, onEdgeDragComplete]);
 
   return (
     <div className="repo-details-outer" ref={containerRef}>

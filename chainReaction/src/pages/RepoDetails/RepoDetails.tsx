@@ -21,9 +21,6 @@ export default function RepoDetails() {
   const [pendingEdge, setPendingEdge] = useState<{ from: string; to: string } | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // NEW: selected node id for highlighting
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-
   // Load all nodes + edges from mock data
   const initial = useMemo(() => {
     const nodes: NodeDatum[] = [];
@@ -118,7 +115,27 @@ export default function RepoDetails() {
     setAddEdgeMode(false);
     setPendingEdge(null);
 
-    // Note: network persistence handled elsewhere / previously
+    console.log();
+
+    // // backend call
+    // try {
+    //   const res = await fetch("/api/dependencies", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify(newEdge),
+    //   });
+
+    //   if (!res.ok) {
+    //     // rollback on failure
+    //     setLocalEdges((prev) =>
+    //       prev.filter((e) => !(e.from === newEdge.from && e.to === newEdge.to && e.type === newEdge.type))
+    //     );
+    //   }
+    // } catch (err) {
+    //   setLocalEdges((prev) =>
+    //     prev.filter((e) => !(e.from === newEdge.from && e.to === newEdge.to && e.type === newEdge.type))
+    //   );
+    // }
   };
 
   const handleCancelAdd = () => {
@@ -129,7 +146,7 @@ export default function RepoDetails() {
 
   return (
     <div className="repo-page-wrapper">
-      {/* GraphCanvas receives selectedNodeId + setter */}
+      {/* 🔥 Key forces complete re-render when edges change */}
       <GraphCanvas
         key={localEdges.length}
         graphData={filteredGraphData}
@@ -137,8 +154,6 @@ export default function RepoDetails() {
         onEdgeDragComplete={handleEdgeDragComplete}
         primaryRepo={primaryRepo}
         secondRepo={secondRepo}
-        selectedNodeId={selectedNodeId}
-        setSelectedNodeId={setSelectedNodeId}
       />
 
       <SidePanel
@@ -151,15 +166,9 @@ export default function RepoDetails() {
             setShowRepoPicker(false);
           }
           setAddEdgeMode(false);
-          // clear selection when view changes
-          setSelectedNodeId(null);
         }}
         secondRepo={secondRepo}
-        setSecondRepo={(r) => {
-          setSecondRepo(r);
-          // keep selection but you might want to clear selection when secondRepo changes:
-          setSelectedNodeId(null);
-        }}
+        setSecondRepo={setSecondRepo}
         showRepoPicker={showRepoPicker}
         setShowRepoPicker={setShowRepoPicker}
         allRepos={allRepos}
