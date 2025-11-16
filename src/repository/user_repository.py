@@ -1,4 +1,5 @@
 import os
+import uuid
 from sqlalchemy import create_engine, Column, Integer, String, Table, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
@@ -36,7 +37,7 @@ class User(Base):
 
 class Repo(Base):
     __tablename__ = "repos"
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, nullable=False, unique=True)
     url = Column(String, nullable=False, unique=True)
 

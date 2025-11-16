@@ -39,14 +39,48 @@ def onboard_project():
     out = {"saved_repo": repo, "message": "Repository onboarded and processing started asynchronously"}
     return jsonify(out), 200
 
-#TODO
-# GET with list of repo_id in the body
-# return nodes[] edges[]
-# 
-# POST with two nodes (uid) + edge info
-# create relationship 
+@project_blueprint.route("/graph", methods=["GET"])
+def get_graph_for_repos():
+    """
+    POST body: {"repo_ids": ["repo_id1", "repo_id2", ...]}
+    Returns { "nodes": [...], "edges": [...] }
+    """
+    data = request.get_json() or {}
+    repo_ids = data.get("repo_ids")
+    if not isinstance(repo_ids, list) or not repo_ids:
+        return jsonify({"error": "repo_ids must be a non-empty list"}), 400
 
-# CRUD endpoints for UI
+    try:
+        result = service.get_graph_for_repos(repo_ids)
+        return jsonify(result), 200
+    except Exception as e:
+        log.error(f"Error fetching graph for repos {repo_ids}: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@project_blueprint.route("/edge", methods=["POST"])
+def create_edge():
+    """Create a relationship between two existing nodes.
+
+    Expected JSON body: { "from": "uid1", "to": "uid2", "type": "DEPENDS_ON" }
+    Returns { ok: true } or { error: ... }
+    """
+    data = request.get_json() or {}
+    src = data.get("from")
+    dst = data.get("to")
+    edge_type = data.get("type")
+
+    if not src or not dst or not edge_type:
+        return jsonify({"error": "from, to and type are required"}), 400
+    try:
+        res = service.create_relationship(src, dst, edge_type)
+        if res.get("error"):
+            return jsonify(res), 400
+        return jsonify(res), 200
+    except Exception as e:
+        log.error(f"Error creating edge {src}->{dst} ({edge_type}): {e}")
+        return jsonify({"error": str(e)}), 500
+ 
 @project_blueprint.route("/nodes", methods=["GET"])
 def get_nodes():
     nodes = service.get_all_nodes()

@@ -153,3 +153,54 @@ class Neo4jRepository:
         """
         with self.driver.session() as s:
             return [dict(r) for r in s.run(q, name=name)]
+    
+    def get_graph_for_repos(self, repo_ids: List[str]):
+        nodes_q = """
+        MATCH (n)
+        WHERE n.repo_id IN $repo_ids
+        RETURN n.uid AS id,
+               n.repo_id AS repoId,
+               n.repo_name AS repoName,
+               n.kind AS type,
+               n.name AS name,
+               n.path AS path,
+               n.meta AS meta,
+               labels(n) AS labels
+        """
+        edges_q = """
+        MATCH (a)-[r]->(b)
+        WHERE a.repo_id IN $repo_ids AND b.repo_id IN $repo_ids
+        RETURN a.uid AS from, type(r) AS type, b.uid AS to
+        """
+        with self.driver.session() as s:
+            nodes = [dict(r) for r in s.run(nodes_q, repo_ids=repo_ids)]
+            edges = [dict(r) for r in s.run(edges_q, repo_ids=repo_ids)]
+        return {"nodes": nodes, "edges": edges}
+
+    def create_edge(self, src_uid: str, dst_uid: str, edge_type: str) -> Dict[str, Any]:
+        """Create a relationship of type `edge_type` from node with uid `src_uid` to `dst_uid`.
+
+        Validates that both nodes exist and that the edge type is allowed.
+        Returns a simple status dict.
+        """
+        edge_type = (edge_type or "").upper()
+        if edge_type not in GraphEdge.ALLOWED:
+            return {"error": f"Invalid edge type: {edge_type}"}
+
+        q_check = "MATCH (a {uid:$src}), (b {uid:$dst}) RETURN a IS NOT NULL AS a_exists, b IS NOT NULL AS b_exists"
+        with self.driver.session() as s:
+            rec = s.run(q_check, src=src_uid, dst=dst_uid).single()
+            if not rec or not rec.get("a_exists") or not rec.get("b_exists"):
+                return {"error": "one_or_both_nodes_missing"}
+
+        # safe to create edge - we validated type already
+        q = f"""
+        MATCH (a {{uid: $src}})
+        MATCH (b {{uid: $dst}})
+        MERGE (a)-[:{edge_type}]->(b)
+        """
+
+        with self.driver.session() as s:
+            s.run(q, src=src_uid, dst=dst_uid)
+
+        return {"ok": True, "src": src_uid, "dst": dst_uid, "type": edge_type}
