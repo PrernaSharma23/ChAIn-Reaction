@@ -13,3 +13,9 @@ export const getRepoId = (name: string): string | undefined =>
 /** Get all repo IDs as string[] */
 export const getAllRepoIds = (): string[] =>
   _.keys(getRepoMap());
+
+export function getFileName(path: string): string {
+  if (!path) return "";
+  const normalized = path.replace(/\\/g, "/");
+  return _.last(normalized.split("/")) ?? "";
+}

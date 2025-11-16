@@ -1,91 +1,96 @@
 // RepoDetails.tsx
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import mockGraphData from "./mockGraphData";
+
 import GraphCanvas from "./GraphCanvas";
 import SidePanel from "./SidePanel";
 import AddDependencyModal from "./AddDependencyModal";
+
 import type { NodeDatum, EdgeDatum } from "./types";
 import "./RepoDetails.scss";
+
 import { getAllRepoIds } from "./Utils";
 
 export default function RepoDetails() {
   const { repoId } = useParams();
-
-  // repoName is actually repoId from the URL
   const primaryRepoId = repoId ?? "";
 
   const [viewType, setViewType] = useState<"intra" | "inter">("intra");
   const [secondRepoId, setSecondRepoId] = useState<string | null>(null);
   const [showRepoPicker, setShowRepoPicker] = useState(false);
 
-  // Add-dependency workflow
   const [addEdgeMode, setAddEdgeMode] = useState(false);
   const [pendingEdge, setPendingEdge] = useState<{ from: string; to: string } | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // NEW: which node is selected for highlight (null = none)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
-  // Load all nodes + edges from mock data
-  const initial = useMemo(() => {
-    const nodes: NodeDatum[] = [];
+  // The REAL graph data now comes from API only
+  const [localNodes, setLocalNodes] = useState<NodeDatum[]>([]);
+  const [localEdges, setLocalEdges] = useState<EdgeDatum[]>([]);
 
-    for (const key of Object.keys(mockGraphData)) {
-      if (key.toLowerCase().includes("nodes")) {
-        const arr = (mockGraphData as any)[key] as NodeDatum[];
-        if (Array.isArray(arr)) nodes.push(...arr);
+  // -----------------------------------------------------
+  // 🔥 Fetch graph data from backend (single source of truth)
+  // -----------------------------------------------------
+  useEffect(() => {
+    const fetchGraph = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+
+        const repoIds = viewType === "intra"
+          ? [primaryRepoId]
+          : secondRepoId
+            ? [primaryRepoId, secondRepoId]
+            : [primaryRepoId];
+
+        const res = await fetch("https://misty-mousy-unseparately.ngrok-free.dev/api/project/graph", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ repo_ids: repoIds }),
+        });
+
+        if (!res.ok) {
+          console.error("Failed to fetch graph");
+          return;
+        }
+
+        const data = await res.json();
+
+        // API returns: { nodes: [...], edges: [...] }
+        setLocalNodes(data.nodes || []);
+        setLocalEdges(data.edges || []);
+
+      } catch (err) {
+        console.error("Graph fetch error:", err);
       }
-    }
+    };
 
-    const edges: EdgeDatum[] = mockGraphData.edges ?? [];
-    return { nodes, edges };
-  }, []);
+    fetchGraph();
+  }, [primaryRepoId, secondRepoId, viewType]);
+  // -----------------------------------------------------
 
-  const [localNodes, setLocalNodes] = useState<NodeDatum[]>(initial.nodes);
-  const [localEdges, setLocalEdges] = useState<EdgeDatum[]>(initial.edges);
-
-  // Filtered graph data based on viewType
-  const filteredGraphData = useMemo(() => {
-    if (viewType === "intra") {
-      const nodes = localNodes.filter((n) => n.repo === primaryRepoId);
-      const allowed = new Set(nodes.map((n) => n.id));
-      const edges = localEdges.filter((e) => allowed.has(e.from) && allowed.has(e.to));
-      return { nodes, edges };
-    }
-
-    const nodes = localNodes.filter(
-      (n) => n.repo === primaryRepoId || n.repo === secondRepoId
-    );
-
-    const allowed = new Set(nodes.map((n) => n.id));
-    const edges = localEdges.filter(
-      (e) => allowed.has(e.from) && allowed.has(e.to)
-    );
-
-    return { nodes, edges };
-  }, [localNodes, localEdges, viewType, primaryRepoId, secondRepoId]);
-
-  // Called by GraphCanvas on drag completion
+  // Drag-complete callback from GraphCanvas
   const handleEdgeDragComplete = (sourceId: string, targetId: string) => {
     const s = localNodes.find((n) => n.id === sourceId);
     const t = localNodes.find((n) => n.id === targetId);
     if (!s || !t) return;
 
-    // disallow intra
-    if (s.repo === t.repo) {
+    // disallow intra dependencies
+    if (s.repoId === t.repoId) {
       setAddEdgeMode(false);
       return;
     }
 
-    // only inter view + secondRepo selected
     if (viewType !== "inter" || !secondRepoId) {
       setAddEdgeMode(false);
       return;
     }
 
-    const allowedRepos = new Set([primaryRepoId, secondRepoId]);
-    if (!allowedRepos.has(s.repo ?? "") || !allowedRepos.has(t.repo ?? "")) {
+    const allowed = new Set([primaryRepoId, secondRepoId]);
+    if (!allowed.has(s.repoId ?? '') || !allowed.has(t.repoId ?? '')) {
       setAddEdgeMode(false);
       return;
     }
@@ -94,51 +99,36 @@ export default function RepoDetails() {
     setShowAddModal(true);
   };
 
-  // Confirm add
   const handleConfirmAdd = async (type: string) => {
     if (!pendingEdge) return;
-    const newEdge: EdgeDatum = { from: pendingEdge.from, to: pendingEdge.to, type };
 
-    // Immediate local update (optimistic)
+    const newEdge: EdgeDatum = {
+      from: pendingEdge.from,
+      to: pendingEdge.to,
+      type,
+    };
+
+    // Optimistic local update
     setLocalEdges((prev) => [...prev, newEdge]);
 
-    // Cleanup modal + mode
+    setPendingEdge(null);
     setShowAddModal(false);
     setAddEdgeMode(false);
-    setPendingEdge(null);
 
-    // // backend call
-    // try {
-    //   const res = await fetch("/api/dependencies", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify(newEdge),
-    //   });
-
-    //   if (!res.ok) {
-    //     // rollback on failure
-    //     setLocalEdges((prev) =>
-    //       prev.filter((e) => !(e.from === newEdge.from && e.to === newEdge.to && e.type === newEdge.type))
-    //     );
-    //   }
-    // } catch (err) {
-    //   setLocalEdges((prev) =>
-    //     prev.filter((e) => !(e.from === newEdge.from && e.to === newEdge.to && e.type === newEdge.type))
-    //   );
-    // }
+    // TODO: send to backend when API is ready
   };
 
   const handleCancelAdd = () => {
     setShowAddModal(false);
-    setAddEdgeMode(false);
     setPendingEdge(null);
+    setAddEdgeMode(false);
   };
 
   return (
     <div className="repo-page-wrapper" style={{ display: "flex", gap: 0 }}>
       <GraphCanvas
-        key={localEdges.length} // ensures re-render when edges change
-        graphData={filteredGraphData}
+        key={localEdges.length}
+        graphData={{ nodes: localNodes, edges: localEdges }}
         addEdgeMode={addEdgeMode}
         onEdgeDragComplete={handleEdgeDragComplete}
         primaryRepoId={primaryRepoId}
@@ -176,7 +166,7 @@ export default function RepoDetails() {
         sourceId={pendingEdge?.from ?? null}
         targetId={pendingEdge?.to ?? null}
         nodes={localNodes}
-        onConfirm={(type) => handleConfirmAdd(type)}
+        onConfirm={handleConfirmAdd}
         onCancel={handleCancelAdd}
       />
     </div>

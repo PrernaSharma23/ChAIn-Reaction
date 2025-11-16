@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { NodeDatum, EdgeDatum } from "./types";
 import "./GraphCanvas.scss";
-import { getRepoName } from "./Utils";
+import { getFileName, getRepoName } from "./Utils";
 
 export default function GraphCanvas({
   graphData,
@@ -48,8 +48,8 @@ export default function GraphCanvas({
     const NodeIdToRepoId = new Map<string, string | undefined>();
     const repoSet = new Set<string>();
     nodes.forEach((n) => {
-      if (n.repo) repoSet.add(n.repo);
-      NodeIdToRepoId.set(n.id, n.repo);
+      if (n.repoId) repoSet.add(n.repoId);
+      NodeIdToRepoId.set(n.id, n.repoId);
     });
 
     const clean = (repo?: string) => (repo ?? "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -161,7 +161,7 @@ export default function GraphCanvas({
     });
 
     // forces
-    const forceX = d3.forceX((d: any) => (d.repo === nodes[0]?.repo ? SVG_W * 0.25 : SVG_W * 0.75)).strength(0.09);
+    const forceX = d3.forceX((d: any) => (d.repoId === nodes[0]?.repoId ? SVG_W * 0.25 : SVG_W * 0.75)).strength(0.09);
     const forceY = d3.forceY(SVG_H / 2).strength(0.04);
     const linkForce = d3.forceLink(linksForD3 as any).id((d: any) => d.id).distance(200);
 
@@ -186,7 +186,7 @@ export default function GraphCanvas({
     const getRepoFrom = (side: any) => {
       if (!side) return undefined;
       if (typeof side === "string") return NodeIdToRepoId.get(side);
-      if ((side as any).repo) return (side as any).repo;
+      if ((side as any).repoId) return (side as any).repoId;
       if ((side as any).id) return NodeIdToRepoId.get((side as any).id);
       return undefined;
     };
@@ -227,9 +227,9 @@ export default function GraphCanvas({
       .attr("class", "node-group")
       .style("pointer-events", "all");
 
-    nodeG.append("circle").attr("r", 22).attr("stroke-width", 3).attr("fill", "none").attr("stroke", (d: any) => repoColors(d.repo!)!);
+    nodeG.append("circle").attr("r", 22).attr("stroke-width", 3).attr("fill", "none").attr("stroke", (d: any) => repoColors(d.repoId)!);
 
-    nodeG.append("text").attr("class", "node-label").attr("text-anchor", "middle").attr("dy", 32).text((d: any) => d.name ?? d.id);
+    nodeG.append("text").attr("class", "node-label").attr("text-anchor", "middle").attr("dy", 32).text((d: any) => getFileName(d.name) ?? d.id);
 
    // Debug
     console.log("[GraphCanvas] nodes:", nodes.length, "links (valid):", linksForD3.length, "links (skipped):", missingEdges.length);
@@ -254,7 +254,7 @@ export default function GraphCanvas({
     nodeG.on("mousedown", (event: any, d: NodeDatum) => {
       if (!addEdgeMode) return;
       const allowedReposIds = new Set([primaryRepoId, secondRepoId]);
-      if (!allowedReposIds.has(d.repo ?? "")) return;
+      if (!allowedReposIds.has(d.repoId ?? "")) return;
 
        // left-click only
       if (event.button && event.button !== 0) return;
@@ -314,14 +314,14 @@ export default function GraphCanvas({
         return;
       }
 
-      if ((sourceNode.repo ?? "") === (hoveredNode.repo ?? "")) {
+      if ((sourceNode.repoId ?? "") === (hoveredNode.repoId ?? "")) {
         sourceNode = null;
         hoveredNode = null;
         return;
       }
 
       const allowedReposIds = new Set([primaryRepoId, secondRepoId]);
-      if (!allowedReposIds.has(sourceNode.repo ?? "") || !allowedReposIds.has(hoveredNode.repo ?? "")) {
+      if (!allowedReposIds.has(sourceNode.repoId ?? "") || !allowedReposIds.has(hoveredNode.repoId ?? "")) {
         sourceNode = null;
         hoveredNode = null;
         return;
@@ -380,7 +380,7 @@ export default function GraphCanvas({
         const el = d3.select(this);
         if (!selectedNodeId) {
           // restore repo stroke
-          el.attr("stroke", repoColors(d.repo!)!).attr("stroke-width", 3).attr("filter", null);
+          el.attr("stroke", repoColors(d.repoId!)!).attr("stroke-width", 3).attr("filter", null);
           return;
         }
 
@@ -399,7 +399,7 @@ export default function GraphCanvas({
           el.attr("stroke", highlightColor).attr("stroke-width", 4).attr("filter", "url(#highlight-glow)");
         } else {
           // unrelated node: keep original repo color
-          el.attr("stroke", repoColors(d.repo!)!).attr("stroke-width", 3).attr("filter", null);
+          el.attr("stroke", repoColors(d.repoId!)!).attr("stroke-width", 3).attr("filter", null);
         }
       });
 

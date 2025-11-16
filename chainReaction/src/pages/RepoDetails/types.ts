@@ -1,7 +1,7 @@
 // types.ts
 export type NodeDatum = {
   id: string;
-  repo?: string;
+  repoId?: string;
   type?: string;
   x?: number;
   y?: number;
