@@ -32,6 +32,7 @@ class ProjectService:
             raise
 
         finally:
+            #TODO : fix directory delete
             if repo_path and os.path.exists(repo_path):
                 try:
                     rmtree(repo_path)
@@ -53,3 +54,13 @@ class ProjectService:
         wrapper to fetch cross-repo dependencies both directions.
         """
         return self.neo_repo.get_edges_between_repos(repo_a, repo_b)
+
+    def get_graph_for_repos(self, repo_ids: list):
+        return self.neo_repo.get_graph_for_repos(repo_ids)
+
+    def create_relationship(self, src_uid: str, dst_uid: str, edge_type: str):
+        """Create a single relationship between two nodes in the graph.
+
+        Returns the repository response (dict).
+        """
+        return self.neo_repo.create_edge(src_uid, dst_uid, edge_type)

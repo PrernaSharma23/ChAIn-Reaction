@@ -72,7 +72,13 @@ def main():
     finally:
         print("🧹 Cleaning temp repo...")
         shutil.rmtree(repo_path)
+def clear():
+    neo = Neo4jRepository()
+    print("🗑 Clearing Neo4j…")
+    neo.clear_all()
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    clear()
+    
