@@ -1,9 +1,14 @@
 from neo4j import GraphDatabase
+import os
 
 class GraphDeltaService:
 
-    def __init__(self, uri="bolt://localhost:7687", user="neo4j", password="pass"):
-        self.driver = GraphDatabase.driver(uri, auth=(user, password))
+    def __init__(self):
+        uri = os.getenv("NEO4J_URI", "neo4j://127.0.0.1:7687")
+        user = os.getenv("NEO4J_USER", "neo4j")
+        pwd = os.getenv("NEO4J_PASS")
+        
+        self.driver = GraphDatabase.driver(uri, auth=(user, pwd ))
 
     # --- BASIC HELPERS -----------------------------------------------------
 

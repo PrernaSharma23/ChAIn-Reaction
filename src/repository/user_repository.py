@@ -20,7 +20,7 @@ user_repos = Table(
     "user_repos",
     Base.metadata,
     Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
-    Column("repo_id", Integer, ForeignKey("repos.id", ondelete="CASCADE"), primary_key=True),
+    Column("repo_id", String, ForeignKey("repos.id", ondelete="CASCADE"), primary_key=True),
 )
 
 
@@ -36,7 +36,7 @@ class User(Base):
 
 class Repo(Base):
     __tablename__ = "repos"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False, unique=True)
     url = Column(String, nullable=False, unique=True)
 

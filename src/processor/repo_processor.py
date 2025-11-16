@@ -1,25 +1,69 @@
-
 import tempfile
 import os
+import shutil
 import git
+from typing import List, Tuple
 from src.util.logger import log
+from src.model.graph_model import GraphNode, GraphEdge
+from src.extractor.extract_repo import ExtractorRouter
+
 
 github_token = os.getenv("GITHUB_TOKEN")
 
+
 class RepoProcessor:
     """
-    Coordinates multiple extractors (Tree-sitter, AI analyzers, etc.)
-    Currently only Tree-sitter, but designed for future extensions.
+    Converts extractor dict output to GraphNode / GraphEdge objects.
     """
 
     def __init__(self):
-        pass
+        self.router = ExtractorRouter()
+        log.info("Initialized Extractor Router")
 
-    def clone_repo(self, repo_name:str, repo_url: str):
-        tmp_dir = tempfile.mkdtemp(dir="./tmp", prefix=repo_name+"_")
+    def clone_repo(self, repo_name: str, repo_url: str, force: bool = False):
+        tmp_dir = f"./tmp/{repo_name}"
+        os.makedirs("./tmp", exist_ok=True)
+
+        if force and os.path.exists(tmp_dir):
+            shutil.rmtree(tmp_dir)
+
+        if os.path.exists(tmp_dir):
+            log.info(f"Using cached repo at {tmp_dir}")
+            return tmp_dir
+
         log.info(f"Cloning repo from {repo_url} into {tmp_dir}")
-        
+
         if github_token:
-            repo_url_with_auth = repo_url.replace("https://", f"https://{github_token}@")
-        git.Repo.clone_from(repo_url_with_auth, tmp_dir)
+            repo_url = repo_url.replace("https://", f"https://{github_token}@")
+
+        git.Repo.clone_from(repo_url, tmp_dir)
         return tmp_dir
+
+    def process(self, repo_id: str, repo_path: str, repo_name: str) -> Tuple[List[GraphNode], List[GraphEdge]]:
+        """
+        Run extractors then convert raw dicts → GraphNode / GraphEdge.
+        """
+        entities_raw, edges_raw = self.router.extract_repo(repo_id, repo_path, repo_name)
+
+        node_objs: List[GraphNode] = []
+        edge_objs: List[GraphEdge] = []
+
+        for e in entities_raw:
+            try:
+                node_objs.append(GraphNode.from_dict(e))
+            except Exception as ex:
+                log.error(f"[WARN] Invalid entity skipped: {ex}")
+
+        for e in edges_raw:
+            try:
+                if isinstance(e, dict):
+                    src = e["src"]
+                    dst = e["dst"]
+                    t = e["type"]
+                else:
+                    src, dst, t = e
+                edge_objs.append(GraphEdge(src=src, dst=dst, type=t))
+            except Exception as ex:
+                log.error(f"[WARN] Invalid edge skipped: {ex}")
+
+        return node_objs, edge_objs
