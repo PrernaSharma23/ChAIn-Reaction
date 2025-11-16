@@ -21,6 +21,9 @@ export default function RepoDetails() {
   const [pendingEdge, setPendingEdge] = useState<{ from: string; to: string } | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
+  // NEW: which node is selected for highlight (null = none)
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
   // Load all nodes + edges from mock data
   const initial = useMemo(() => {
     const nodes: NodeDatum[] = [];
@@ -55,14 +58,10 @@ export default function RepoDetails() {
       return { nodes, edges };
     }
 
-    const nodes = localNodes.filter(
-      (n) => n.repo === primaryRepo || n.repo === secondRepo
-    );
+    const nodes = localNodes.filter((n) => n.repo === primaryRepo || n.repo === secondRepo);
 
     const allowed = new Set(nodes.map((n) => n.id));
-    const edges = localEdges.filter(
-      (e) => allowed.has(e.from) && allowed.has(e.to)
-    );
+    const edges = localEdges.filter((e) => allowed.has(e.from) && allowed.has(e.to));
 
     return { nodes, edges };
   }, [localNodes, localEdges, viewType, primaryRepo, secondRepo]);
@@ -71,16 +70,15 @@ export default function RepoDetails() {
   const handleEdgeDragComplete = (sourceId: string, targetId: string) => {
     const s = localNodes.find((n) => n.id === sourceId);
     const t = localNodes.find((n) => n.id === targetId);
-
     if (!s || !t) return;
 
-    // ❌ Intra repo not allowed
+    // disallow intra
     if (s.repo === t.repo) {
       setAddEdgeMode(false);
       return;
     }
 
-    // Only inter repo + secondRepo required
+    // only inter view + secondRepo selected
     if (viewType !== "inter" || !secondRepo) {
       setAddEdgeMode(false);
       return;
@@ -92,28 +90,24 @@ export default function RepoDetails() {
       return;
     }
 
-    // Store pending edge and open modal
     setPendingEdge({ from: sourceId, to: targetId });
     setShowAddModal(true);
   };
 
-  // Modal confirm
+  // Confirm add
   const handleConfirmAdd = async (type: string) => {
     if (!pendingEdge) return;
-
-    const newEdge: EdgeDatum = {
-      from: pendingEdge.from,
-      to: pendingEdge.to,
-      type,
-    };
+    const newEdge: EdgeDatum = { from: pendingEdge.from, to: pendingEdge.to, type };
 
     // Immediate local update (optimistic)
     setLocalEdges((prev) => [...prev, newEdge]);
 
-    // Cleanup modal + mode
+// Cleanup modal + mode
     setShowAddModal(false);
     setAddEdgeMode(false);
     setPendingEdge(null);
+
+    // Note: persistence disabled for local dev. Add your API call if needed.
 
     console.log();
 
@@ -145,15 +139,16 @@ export default function RepoDetails() {
   };
 
   return (
-    <div className="repo-page-wrapper">
-      {/* 🔥 Key forces complete re-render when edges change */}
+    <div className="repo-page-wrapper" style={{ display: "flex", gap: 0 }}>
       <GraphCanvas
-        key={localEdges.length}
+        key={localEdges.length} // ensures re-render when edges change
         graphData={filteredGraphData}
         addEdgeMode={addEdgeMode}
         onEdgeDragComplete={handleEdgeDragComplete}
         primaryRepo={primaryRepo}
         secondRepo={secondRepo}
+        selectedNodeId={selectedNodeId}
+        setSelectedNodeId={setSelectedNodeId}
       />
 
       <SidePanel
@@ -166,9 +161,13 @@ export default function RepoDetails() {
             setShowRepoPicker(false);
           }
           setAddEdgeMode(false);
+          setSelectedNodeId(null);
         }}
         secondRepo={secondRepo}
-        setSecondRepo={setSecondRepo}
+        setSecondRepo={(r) => {
+          setSecondRepo(r);
+          setSelectedNodeId(null);
+        }}
         showRepoPicker={showRepoPicker}
         setShowRepoPicker={setShowRepoPicker}
         allRepos={allRepos}

@@ -1,4 +1,4 @@
-// GraphCanvas.tsx — defensive, restart-on-update edition
+// GraphCanvas.tsx
 import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { NodeDatum, EdgeDatum } from "./types";
@@ -12,6 +12,8 @@ export default function GraphCanvas({
   primaryRepo,
   secondRepo,
   onEdgeDragComplete,
+  selectedNodeId,
+  setSelectedNodeId,
 }: {
   graphData: { nodes: NodeDatum[]; edges: EdgeDatum[] } | null | undefined;
   width?: number;
@@ -20,18 +22,18 @@ export default function GraphCanvas({
   primaryRepo?: string;
   secondRepo?: string | null;
   onEdgeDragComplete?: (s: string, t: string) => void;
+  selectedNodeId?: string | null;
+  setSelectedNodeId?: (id: string | null) => void;
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Basic guard
     if (!graphData || !graphData.nodes) return;
 
     const nodes: NodeDatum[] = [...graphData.nodes];
     const edges: EdgeDatum[] = [...(graphData.edges ?? [])];
 
-    // cleanup and base svg
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
     svg.style("touch-action", "none");
@@ -41,7 +43,7 @@ export default function GraphCanvas({
     const SVG_H = height;
     svg.attr("viewBox", `0 0 ${SVG_W} ${SVG_H}`);
 
-    // maps for lookups
+    // lookups
     const idToRepo = new Map<string, string | undefined>();
     const repoSet = new Set<string>();
     nodes.forEach((n) => {
@@ -49,10 +51,9 @@ export default function GraphCanvas({
       idToRepo.set(n.id, n.repo);
     });
 
-    const clean = (repo?: string) =>
-      (repo ?? "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    const clean = (repo?: string) => (repo ?? "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
 
-    // Build linksForD3 but FILTER invalid endpoints (defensive)
+    // prepare links, skip those whose endpoints are not in nodes
     const missingEdges: EdgeDatum[] = [];
     const linksForD3 = edges
       .map((e) => ({ source: e.from, target: e.to, type: e.type }))
@@ -67,8 +68,7 @@ export default function GraphCanvas({
       });
 
     if (missingEdges.length > 0) {
-      // Helpful debug log: shows edges that are being skipped so you can see if filtering caused missing nodes
-      console.warn("[GraphCanvas] Skipping edges whose endpoints are missing from current nodes:", missingEdges);
+      console.warn("[GraphCanvas] skipping edges with missing endpoints:", missingEdges);
     }
 
     // colors
@@ -78,13 +78,16 @@ export default function GraphCanvas({
       .range(["#00eaff", "#ff4d8a", "#8a7bff", "#00ffc8"]);
     const interColor = "#37c77f";
 
-    // defs / markers
+    // defs + markers
     const defs = svg.append("defs");
+
+    // marker per repo
     Array.from(repoSet).forEach((repo) => {
       if (!repo) return;
+      const key = clean(repo);
       defs
         .append("marker")
-        .attr("id", `arrow-${clean(repo)}`)
+        .attr("id", `arrow-${key}`)
         .attr("viewBox", "0 0 10 10")
         .attr("refX", 10)
         .attr("refY", 5)
@@ -98,6 +101,7 @@ export default function GraphCanvas({
         .attr("stroke", "none");
     });
 
+    // inter marker
     defs
       .append("marker")
       .attr("id", "arrow-inter")
@@ -113,12 +117,42 @@ export default function GraphCanvas({
       .attr("fill", interColor)
       .attr("stroke", "none");
 
+    // HIGHLIGHT (neon yellow) marker + filter
+    const highlightColor = "#ffef7a"; // neon yellow
+    defs
+      .append("marker")
+      .attr("id", "arrow-highlight")
+      .attr("viewBox", "0 0 10 10")
+      .attr("refX", 10)
+      .attr("refY", 5)
+      .attr("markerWidth", 10)
+      .attr("markerHeight", 10)
+      .attr("orient", "auto")
+      .attr("markerUnits", "userSpaceOnUse")
+      .append("path")
+      .attr("d", "M 0 0 L 10 5 L 0 10 z")
+      .attr("fill", highlightColor)
+      .attr("stroke", "none");
+
+    // glow filter for highlight
+    const glow = defs
+      .append("filter")
+      .attr("id", "highlight-glow")
+      .attr("x", "-50%")
+      .attr("y", "-50%")
+      .attr("width", "200%")
+      .attr("height", "200%");
+    glow.append("feGaussianBlur").attr("stdDeviation", 4).attr("result", "blurOut");
+    const merge = glow.append("feMerge");
+    merge.append("feMergeNode").attr("in", "blurOut");
+    merge.append("feMergeNode").attr("in", "SourceGraphic");
+
     const gMain = svg.append("g").attr("class", "g-main");
 
     // overlay for temporary visuals (pointer-events none so it doesn't block nodes)
     const overlay = svg.append("g").attr("class", "overlay-layer").style("pointer-events", "none");
 
-    // legend (optional)
+    // legend
     const legend = svg.append("g").attr("transform", "translate(20,20)");
     Array.from(repoSet).forEach((repo, i) => {
       legend.append("circle").attr("cx", 0).attr("cy", i * 22).attr("r", 6).attr("fill", repoColors(repo!));
@@ -128,7 +162,6 @@ export default function GraphCanvas({
     // forces
     const forceX = d3.forceX((d: any) => (d.repo === nodes[0]?.repo ? SVG_W * 0.25 : SVG_W * 0.75)).strength(0.09);
     const forceY = d3.forceY(SVG_H / 2).strength(0.04);
-
     const linkForce = d3.forceLink(linksForD3 as any).id((d: any) => d.id).distance(200);
 
     const simulation = d3
@@ -140,7 +173,7 @@ export default function GraphCanvas({
       .force("collide", d3.forceCollide(55))
       .alphaDecay(0.05);
 
-    // links group with a key to help D3 reconcile (source-target string)
+    // link groups
     const linkGroup = gMain
       .append("g")
       .selectAll("g.link")
@@ -197,7 +230,7 @@ export default function GraphCanvas({
 
     nodeG.append("text").attr("class", "node-label").attr("text-anchor", "middle").attr("dy", 32).text((d: any) => d.name ?? d.id);
 
-    // Debug
+   // Debug
     console.log("[GraphCanvas] nodes:", nodes.length, "links (valid):", linksForD3.length, "links (skipped):", missingEdges.length);
 
     // ---------- Add-edge interaction ----------
@@ -222,7 +255,7 @@ export default function GraphCanvas({
       const allowedRepos = new Set([primaryRepo, secondRepo]);
       if (!allowedRepos.has(d.repo ?? "")) return;
 
-      // left-click only
+       // left-click only
       if (event.button && event.button !== 0) return;
 
       isDrawing = true;
@@ -242,6 +275,16 @@ export default function GraphCanvas({
 
       event.preventDefault();
       event.stopPropagation();
+    });
+
+    // click toggles highlight — only when NOT in addEdgeMode
+    nodeG.on("click", (event: any, d: NodeDatum) => {
+      if (addEdgeMode) return;
+      if (selectedNodeId === d.id) {
+        setSelectedNodeId?.(null);
+      } else {
+        setSelectedNodeId?.(d.id);
+      }
     });
 
     const onMove = (event: MouseEvent) => {
@@ -294,14 +337,72 @@ export default function GraphCanvas({
     // restart simulation to ensure newly added links settle into place
     simulation.alpha(0.8).restart();
 
-    // tick: update positions
+    // TICK: update positions and apply highlight only to connected edges/nodes (no fading)
     simulation.on("tick", () => {
+      // positions
       linkLines
         .attr("x1", (d: any) => (d.source && typeof d.source.x === "number" ? d.source.x : 0))
         .attr("y1", (d: any) => (d.source && typeof d.source.y === "number" ? d.source.y : 0))
         .attr("x2", (d: any) => (d.target && typeof d.target.x === "number" ? d.target.x : 0))
         .attr("y2", (d: any) => (d.target && typeof d.target.y === "number" ? d.target.y : 0));
 
+      // highlight logic: only change stroke & apply glow for connected edges; otherwise keep original stroke
+      linkLines.each(function (d: any) {
+        const elem = d3.select(this);
+        const sId = (d.source as any).id ?? d.source;
+        const tId = (d.target as any).id ?? d.target;
+
+        if (selectedNodeId && (sId === selectedNodeId || tId === selectedNodeId)) {
+          // highlight edge
+          elem
+            .attr("stroke", highlightColor)
+            .attr("stroke-width", 4)
+            .attr("filter", "url(#highlight-glow)")
+            .attr("marker-end", "url(#arrow-highlight)");
+        } else {
+          // restore default edge color and marker (repo or inter)
+          const sRepo = getRepoFrom(d.source);
+          const tRepo = getRepoFrom(d.target);
+          const baseColor = sRepo === tRepo ? repoColors(sRepo!)! : interColor;
+          const baseMarker = sRepo && tRepo && sRepo === tRepo ? `url(#arrow-${clean(sRepo)})` : "url(#arrow-inter)";
+
+          elem
+            .attr("stroke", baseColor)
+            .attr("stroke-width", 2.2)
+            .attr("filter", null)
+            .attr("marker-end", baseMarker);
+        }
+      });
+
+      // nodes: if selected or connected, highlight those nodes' strokes; do not dim others
+      nodeG.selectAll("circle").each(function (d: any) {
+        const el = d3.select(this);
+        if (!selectedNodeId) {
+          // restore repo stroke
+          el.attr("stroke", repoColors(d.repo!)!).attr("stroke-width", 3).attr("filter", null);
+          return;
+        }
+
+        // determine if node is connected to selectedNodeId
+        const connected = linksForD3.some((l: any) => {
+          const s = l.source as string;
+          const t = l.target as string;
+          return (s === selectedNodeId && (d.id === t)) || (t === selectedNodeId && (d.id === s));
+        });
+
+        if (d.id === selectedNodeId) {
+          // selected node: strong highlight
+          el.attr("stroke", highlightColor).attr("stroke-width", 5).attr("filter", "url(#highlight-glow)");
+        } else if (connected) {
+          // connected node: highlight slightly
+          el.attr("stroke", highlightColor).attr("stroke-width", 4).attr("filter", "url(#highlight-glow)");
+        } else {
+          // unrelated node: keep original repo color
+          el.attr("stroke", repoColors(d.repo!)!).attr("stroke-width", 3).attr("filter", null);
+        }
+      });
+
+      // position labels and groups
       linkGroup.selectAll("text").attr("x", (d: any) => ((d.source?.x ?? 0) + (d.target?.x ?? 0)) / 2).attr("y", (d: any) => ((d.source?.y ?? 0) + (d.target?.y ?? 0)) / 2);
 
       nodeG.attr("transform", (d: any) => `translate(${d.x ?? 0},${d.y ?? 0})`);
@@ -312,7 +413,7 @@ export default function GraphCanvas({
       simulation.stop();
       d3.select(window).on("mousemove.dragcreate", null).on("mouseup.dragcreate", null);
     };
-  }, [graphData, width, height, addEdgeMode, primaryRepo, secondRepo, onEdgeDragComplete]);
+  }, [graphData, width, height, addEdgeMode, primaryRepo, secondRepo, onEdgeDragComplete, selectedNodeId, setSelectedNodeId]);
 
   return (
     <div className="repo-details-outer" ref={containerRef}>
