@@ -1,6 +1,5 @@
 import os
-from datetime import datetime
-from tree_sitter import Language
+from tree_sitter import Node
 from tree_sitter_languages import get_language
 
 PY_LANG = get_language("python")
@@ -9,16 +8,34 @@ PY_LANG = get_language("python")
 class PythonAST:
     LANG = PY_LANG
 
-    def __init__(self, repo, path):
-        self.repo = repo
-        self.path = path
+    def __init__(self, repo_name, rel_path):
+        self.repo = repo_name
+        self.path = rel_path
 
-    def walk(self, node, src):
-        nodes = []
+    # ---------- GENERIC DFS WALK ----------
+    def _walk(self, node: Node):
+        yield node
+        for child in node.children:
+            yield from self._walk(child)
+
+    # ---------- NAME EXTRACTION ----------
+    def _extract_identifier(self, src_bytes, node: Node):
+        for child in node.children:
+            if child.type == "identifier":
+                return src_bytes[child.start_byte:child.end_byte].decode("utf8")
+        return "unknown"
+
+    # ---------- MAIN WALK ----------
+    def walk(self, root: Node, src: str):
+        src_bytes = src.encode("utf8")
+
+        entities = []
         edges = []
 
         file_uid = f"{self.repo}:{self.path}"
-        nodes.append({
+
+        # ------------------------ FILE NODE ------------------------
+        entities.append({
             "uid": file_uid,
             "repo": self.repo,
             "kind": "file",
@@ -28,24 +45,41 @@ class PythonAST:
             "meta": "{}",
         })
 
-        for child in node.children:
-            if child.type == "function_definition":
-                fn_name = self._get_name(src, child)
-                fn_uid = f"{file_uid}:{fn_name}"
-                nodes.append({
-                    "uid": fn_uid,
+        # ------------------------ WALK AST -------------------------
+        for node in self._walk(root):
+
+            # -------- class declarations --------
+            if node.type == "class_definition":
+                name = self._extract_identifier(src_bytes, node)
+                uid = f"{file_uid}:class:{name}"
+
+                entities.append({
+                    "uid": uid,
                     "repo": self.repo,
-                    "kind": "function",
-                    "name": fn_name,
+                    "kind": "class",
+                    "name": name,
                     "language": "python",
                     "path": self.path,
                     "meta": "{}",
                 })
-                edges.append((file_uid, fn_uid, "CONTAINS"))
 
-        return nodes, edges
+                edges.append((file_uid, uid, "CONTAINS"))
 
-    def _get_name(self, src, node):
-        text = src[node.start_byte:node.end_byte]
-        parts = text.split()
-        return parts[1].split("(")[0] if len(parts) > 1 else "unknown"
+            # -------- function declarations --------
+            elif node.type == "function_definition":
+                name = self._extract_identifier(src_bytes, node)
+                uid = f"{file_uid}:method:{name}"
+
+                entities.append({
+                    "uid": uid,
+                    "repo": self.repo,
+                    "kind": "method",
+                    "name": name,
+                    "language": "python",
+                    "path": self.path,
+                    "meta": "{}",
+                })
+
+                edges.append((file_uid, uid, "CONTAINS"))
+
+        return entities, edges
