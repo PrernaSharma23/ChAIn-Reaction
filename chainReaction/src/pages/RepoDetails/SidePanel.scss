@@ -1,0 +1,133 @@
+/* SidePanel.scss — Spacious Vertical Layout */
+
+.side-panel {
+  width: 350px;
+  background: #0b1621;
+  border-left: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 28px; /* increased from 24px */
+  color: #e6f0fb;
+  display: flex;
+  flex-direction: column;
+  font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-shadow: -6px 0 30px rgba(0, 0, 0, 0.5);
+}
+
+.panel-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 32px; /* more spacing between sections */
+}
+
+/* HEADER */
+.panel-head {
+  margin-bottom: 12px;
+}
+
+.panel-head .title {
+  font-size: 19px;
+  font-weight: 700;
+  color: #f2fbff;
+  margin-bottom: 6px;
+}
+.panel-head .subtitle {
+  font-size: 13px;
+  color: #bcd5ea;
+}
+
+/* SECTIONS */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px; /* spacing inside */
+  padding-bottom: 20px; /* larger bottom padding */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.section:last-of-type {
+  border-bottom: none;
+}
+
+.section .label {
+  font-size: 13px;
+  color: #bcd5ea;
+  margin-bottom: 4px;
+}
+
+.section .value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #dfeefc;
+}
+
+/* VIEW TYPE BUTTONS */
+.controls {
+  display: flex;
+  gap: 12px;
+}
+
+.seg {
+  flex: 1;
+  padding: 12px 14px; /* larger */
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e6f0fb;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s ease;
+}
+
+.seg:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.seg.active {
+  background: linear-gradient(90deg, #00eaff, #ff4d8a);
+  color: #071219;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(0, 234, 255, 0.12);
+}
+
+/* BUTTON ROW */
+.controls-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.ghost,
+.primary {
+  padding: 12px 10px; 
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.ghost {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e6f0fb;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.primary {
+  background: #00eaff;
+  color: #071219;
+  border: none;
+  font-weight: 600;
+}
+.primary:hover {
+  background: #00d4e0;
+}
+.primary[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* SPACER */
+.spacer {
+  flex: 1;
+}

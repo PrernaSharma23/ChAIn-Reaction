@@ -1,0 +1,130 @@
+/* AddDependencyModal.scss — Updated styling */
+
+.adm-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 10, 18, 0.55);
+  z-index: 99999;
+  backdrop-filter: blur(2px);
+}
+
+.adm-card {
+  width: 440px;
+  background: #0b1621;
+  border-radius: 14px;
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  color: #e6f0fb;
+  font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.adm-title {
+  margin: 0 0 22px 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.adm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.arrow {
+  font-size: 22px;
+  color: #9ab7cc;
+  font-weight: 600;
+}
+
+.label {
+  font-size: 13px;
+  color: #bcd5ea;
+  margin-bottom: 6px;
+}
+
+.chip {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  color: #e1efff;
+  font-size: 14px;
+}
+
+.adm-field {
+  margin-bottom: 26px;
+}
+
+.type-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.type-pill {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e6f0fb;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s ease;
+}
+
+.type-pill:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ⭐ NEW selected color — neon blue glow */
+.type-pill.selected {
+  background: #00bdf3;
+  color: #071219;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(0, 189, 243, 0.6);
+  border: none;
+}
+
+.adm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* New Button Classes */
+.adm-btn-cancel {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e6f0fb;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.adm-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.adm-btn-confirm {
+  background: #00eaff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  color: #071219;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.adm-btn-confirm:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

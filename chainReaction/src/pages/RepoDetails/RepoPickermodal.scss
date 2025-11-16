@@ -1,0 +1,154 @@
+/* Overlay - dark blur background */
+.repo-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* Modal Container */
+.repo-modal {
+  background: #0e1b29;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  width: 360px;
+  padding: 22px 24px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+  font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif;
+  animation: popupScale 0.18s ease-out;
+}
+
+/* Popup Animation */
+@keyframes popupScale {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Modal Header */
+.modal-header h3 {
+  margin: 0 0 16px;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Modal Body */
+.modal-body {
+  margin-bottom: 22px;
+}
+
+.modal-label {
+  display: block;
+  color: #bcd5ea;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+/* Dropdown (Select) */
+.repo-select {
+  width: 100%;
+  padding: 10px 12px;
+  background: #132334;
+  color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 14px;
+  appearance: none;
+  font-family: Inter, -apple-system, "Segoe UI", Roboto;
+  cursor: pointer;
+  outline: none;
+  transition: border 0.15s ease;
+}
+
+.repo-select:hover {
+  border-color: rgba(0, 170, 255, 0.55);
+}
+
+.repo-select:focus {
+  border-color: #00aaff;
+  box-shadow: 0 0 0 2px rgba(0, 170, 255, 0.28);
+}
+
+/* ▼ Dropdown Arrow */
+.repo-select {
+  background-image: linear-gradient(45deg, transparent 50%, #bcd5ea 50%),
+                    linear-gradient(135deg, #bcd5ea 50%, transparent 50%);
+  background-position: calc(100% - 12px) calc(50% + 3px),
+                       calc(100% - 8px) calc(50% + 3px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+/* Dropdown Options (Dark Theme) */
+.repo-select option {
+  background: #0e1b29;
+  color: #ffffff;
+  padding: 8px;
+  font-size: 14px;
+}
+
+/* Firefox support: force dark dropdown list */
+@-moz-document url-prefix() {
+  .repo-select option {
+    background-color: #0e1b29 !important;
+    color: #ffffff !important;
+  }
+}
+
+/* Modal Action Buttons */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  font-family: Inter, -apple-system, "Segoe UI", Roboto;
+}
+
+/* Cancel Button */
+.btn.ghost {
+  background: transparent;
+  color: #bcd5ea;
+}
+
+.btn.ghost:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Select Button */
+.btn.primary {
+  background: #00aaff;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 170, 255, 0.4);
+}
+
+.btn.primary:hover {
+  background: #11bbff;
+  box-shadow: 0 0 14px rgba(0, 170, 255, 0.55);
+}
+
+/* Disabled Select Button */
+.btn.primary:disabled {
+  background: rgba(0, 170, 255, 0.35);
+  cursor: not-allowed;
+  box-shadow: none;
+}
