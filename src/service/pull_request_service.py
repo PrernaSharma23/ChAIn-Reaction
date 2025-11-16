@@ -1,8 +1,10 @@
 import os
 import requests
 import base64
+from service.graph_delta_service import GraphDeltaService
 from src.util.logger import log
 from src.service.comment_notification_service import CommentNotificationService
+from src.processor.tree_sitter_extractor import TreeSitterExtractor
 
 
 class PullRequestService:
@@ -11,6 +13,8 @@ class PullRequestService:
     def __init__(self):
         self.github_token = os.environ.get("GITHUB_TOKEN")
         self.notification_service = CommentNotificationService()
+        self.extractor = TreeSitterExtractor()
+        self.delta_service = GraphDeltaService()
 
     def download_file(self, repo_full_name, sha):
         """Download raw file contents from GitHub given blob SHA."""
@@ -37,23 +41,20 @@ class PullRequestService:
             return None
 
     def analyze_diff(self, files_content: dict) -> dict:
-        from src.processor.tree_sitter_extractor import TreeSitterExtractor
-
         try:
-            extractor = TreeSitterExtractor()
+            
             all_nodes, all_edges = [], []
 
             for file_path, content in files_content.items():
-                lang = extractor.get_language(file_path)
+                lang = self.extractor.get_language(file_path)
                 if not lang:
                     continue
 
-                symbols = extractor.extract_from_string(content, file_path, lang)
+                symbols = self.extractor.extract_from_string(content, file_path, lang)
                 file_result = {"symbols": symbols, "language": lang}
 
-                nodes = extractor.convert_symbols_to_nodes("repo", file_path, file_result)
-                edges = extractor.derive_edges_from_symbols("repo", file_path, file_result)
-
+                nodes = self.extractor.convert_symbols_to_nodes("repo", file_path, file_result)
+                edges = self.extractor.derive_edges_from_symbols("repo", file_path, file_result)
                 all_nodes += nodes
                 all_edges += edges
 
@@ -79,6 +80,12 @@ class PullRequestService:
 
             # Call analyze_diff to generate AST nodes and edges
             result = self.analyze_diff(files_content)
+            #TODO: generate delta, nodes modified/added/deleted 
+            delta = self.delta_service.compute_delta(
+                pr_nodes=result["nodes"],
+                pr_edges=[tuple(e) for e in result["edges"]]
+                )
+            #TODO: use delta for further processing/notification
 
             if result.get("nodes") or result.get("edges"):
                 result_comment = (

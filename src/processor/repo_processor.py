@@ -1,7 +1,7 @@
 
 import tempfile
 import os
-from src.processor.tree_sitter_extractor import TreeSitterExtractor
+import git
 from src.util.logger import log
 
 github_token = os.getenv("GITHUB_TOKEN")
@@ -13,7 +13,7 @@ class RepoProcessor:
     """
 
     def __init__(self):
-        self.tree_sitter_extractor = TreeSitterExtractor()
+        pass
 
     def clone_repo(self, repo_name:str, repo_url: str):
         tmp_dir = tempfile.mkdtemp(dir="./tmp", prefix=repo_name+"_")

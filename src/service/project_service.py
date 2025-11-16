@@ -21,8 +21,7 @@ class ProjectService:
         log.info(f"Started async processing for repository: {repo_url}")
         try : 
             repo_path = self.repo_processor.clone_repo(repo_name, repo_url)
-            graph_data = self.tree_sitter_extractor.extract_from_repo(repo_url)
-            #return graph_data
+            graph_data = self.tree_sitter_extractor.extract_from_repo(repo_name, repo_path)
             # self.neo_repo.store_graph(graph_data)
             return {"message": "Repository processed and graph created"}
         except Exception as e:

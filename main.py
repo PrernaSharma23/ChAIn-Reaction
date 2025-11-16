@@ -9,11 +9,11 @@ def create_app():
     app.register_blueprint(project_blueprint, url_prefix="/api/project")
     app.register_blueprint(pr_bp)
     app.register_blueprint(user_blueprint, url_prefix="/api/user")
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": ["http://localhost:3000"]
-        }
-    })
+    # CORS(app, resources={
+    #     r"/api/*": {
+    #         "origins": ["http://localhost:3000"]
+    #     }
+    # })
     return app
 
 if __name__ == "__main__":
