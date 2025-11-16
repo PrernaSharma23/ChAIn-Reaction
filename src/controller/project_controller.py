@@ -35,10 +35,16 @@ def onboard_project():
         return jsonify({"error": "repo_url missing"}), 400
 
     repo = user_service.add_repository_to_user(user_id, repo_url, repo_name)
-    run_async(service.process_repository, repo["repo_name"], repo["repo_url"])
+    run_async(service.process_repository, repo["id"], repo["repo_name"], repo["repo_url"])
     out = {"saved_repo": repo, "message": "Repository onboarded and processing started asynchronously"}
     return jsonify(out), 200
 
+#TODO
+# GET with list of repo_id in the body
+# return nodes[] edges[]
+# 
+# POST with two nodes (uid) + edge info
+# create relationship 
 
 # CRUD endpoints for UI
 @project_blueprint.route("/nodes", methods=["GET"])

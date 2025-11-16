@@ -11,7 +11,7 @@ def create_app():
     app.register_blueprint(user_blueprint, url_prefix="/api/user")
     CORS(app, resources={
         r"/api/*": {
-            "origins": ["http://localhost:3000"]
+            "origins": ["http://localhost:5174"]
         }
     })
     return app

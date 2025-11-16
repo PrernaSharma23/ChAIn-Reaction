@@ -1,36 +1,69 @@
 import tempfile
 import os
+import shutil
 import git
-from tree_sitter import Language, Parser
-from tree_sitter_languages import get_language, get_parser
-
+from typing import List, Tuple
 from src.util.logger import log
+from src.model.graph_model import GraphNode, GraphEdge
+from src.extractor.extract_repo import ExtractorRouter
+
 
 github_token = os.getenv("GITHUB_TOKEN")
 
-class RepoProcessor:
-    def __init__(self):
-        """
-        Initialize Tree-sitter parser for Java.
-        For multi-language support, you can load more parsers dynamically.
-        """
-        self.parser = get_parser("java")
-        log.info("Initialized Tree-sitter parser for Java")
 
-    def clone_repo(self, repo_name:str, repo_url: str):
-        tmp_dir = tempfile.mkdtemp(dir="./tmp", prefix=repo_name+"_")
+class RepoProcessor:
+    """
+    Converts extractor dict output to GraphNode / GraphEdge objects.
+    """
+
+    def __init__(self):
+        self.router = ExtractorRouter()
+        log.info("Initialized Extractor Router")
+
+    def clone_repo(self, repo_name: str, repo_url: str, force: bool = False):
+        tmp_dir = f"./tmp/{repo_name}"
+        os.makedirs("./tmp", exist_ok=True)
+
+        if force and os.path.exists(tmp_dir):
+            shutil.rmtree(tmp_dir)
+
+        if os.path.exists(tmp_dir):
+            log.info(f"Using cached repo at {tmp_dir}")
+            return tmp_dir
+
         log.info(f"Cloning repo from {repo_url} into {tmp_dir}")
-        
+
         if github_token:
-            repo_url_with_auth = repo_url.replace("https://", f"https://{github_token}@")
-        git.Repo.clone_from(repo_url_with_auth, tmp_dir)
+            repo_url = repo_url.replace("https://", f"https://{github_token}@")
+
+        git.Repo.clone_from(repo_url, tmp_dir)
         return tmp_dir
-    
-    def process(self, repo_path: str):
-        graph_data = {"nodes": [], "edges": []}
-        for root, _, files in os.walk(repo_path):
-            for file in files:
-                if file.endswith(".java"):
-                    graph_data["nodes"].append({"type": "File", "name": file})
-                    # (Placeholder — later extract functions/classes/params)
-        return graph_data
+
+    def process(self, repo_id: str, repo_path: str, repo_name: str) -> Tuple[List[GraphNode], List[GraphEdge]]:
+        """
+        Run extractors then convert raw dicts → GraphNode / GraphEdge.
+        """
+        entities_raw, edges_raw = self.router.extract_repo(repo_id, repo_path, repo_name)
+
+        node_objs: List[GraphNode] = []
+        edge_objs: List[GraphEdge] = []
+
+        for e in entities_raw:
+            try:
+                node_objs.append(GraphNode.from_dict(e))
+            except Exception as ex:
+                log.error(f"[WARN] Invalid entity skipped: {ex}")
+
+        for e in edges_raw:
+            try:
+                if isinstance(e, dict):
+                    src = e["src"]
+                    dst = e["dst"]
+                    t = e["type"]
+                else:
+                    src, dst, t = e
+                edge_objs.append(GraphEdge(src=src, dst=dst, type=t))
+            except Exception as ex:
+                log.error(f"[WARN] Invalid edge skipped: {ex}")
+
+        return node_objs, edge_objs

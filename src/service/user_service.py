@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from src.repository.user_repository import UserRepository, create_tables
 from src.util.logger import log
 
-SECRET_KEY = os.environ.get("JWT_SECRET", "change-me-secret")
+SECRET_KEY = os.environ.get("JWT_SECRET")
 TOKEN_EXP_SECONDS = int(os.environ.get("JWT_EXP_SECONDS", "86400"))
 
 
