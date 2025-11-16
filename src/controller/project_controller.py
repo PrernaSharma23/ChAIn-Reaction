@@ -1,9 +1,10 @@
 import os
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from src.service.project_service import ProjectService
 from src.service.user_service import UserService
 from src.util.logger import log
 from src.util.async_tasks import run_async
+from src.util.auth import jwt_required
 
 project_blueprint = Blueprint("project_controller", __name__)
 service = ProjectService()
@@ -11,6 +12,7 @@ user_service = UserService()
 
 
 @project_blueprint.route("/onboard", methods=["POST"])
+@jwt_required
 def onboard_project():
     """
     Called by UI when a new GitHub project is onboarded.
@@ -20,26 +22,21 @@ def onboard_project():
     data = request.get_json() or {}
     repo_url = data.get("repo_url")
     repo_name = data.get("repo_name")
-    # require user to be logged in
-    auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer "):
-        return jsonify({"error": "Authorization token required"}), 401
-
-    token = auth.split(" ", 1)[1].strip()
-    decoded = user_service.decode_token(token)
-    if isinstance(decoded, dict) and decoded.get("error"):
-        return jsonify(decoded), 401
-
-    user_id = decoded.get("sub")
+    user_id = g.user.get("sub")
     if not repo_url:
         return jsonify({"error": "repo_url missing"}), 400
 
     repo = user_service.add_repository_to_user(user_id, repo_url, repo_name)
-    run_async(service.process_repository, repo["id"], repo["repo_name"], repo["repo_url"])
-    out = {"saved_repo": repo, "message": "Repository onboarded and processing started asynchronously"}
+    if repo and repo.get("is_new"):
+        run_async(service.process_repository, repo["id"], repo["repo_name"], repo["repo_url"])
+        msg = "Repository onboarded and processing started asynchronously"
+    else:
+        msg = "Repository added to user (already exists in system)"
+    out = {"saved_repo": repo, "message": msg}
     return jsonify(out), 200
 
-@project_blueprint.route("/graph", methods=["GET"])
+@project_blueprint.route("/graph", methods=["POST"])
+@jwt_required
 def get_graph_for_repos():
     """
     POST body: {"repo_ids": ["repo_id1", "repo_id2", ...]}
@@ -59,6 +56,7 @@ def get_graph_for_repos():
 
 
 @project_blueprint.route("/edge", methods=["POST"])
+@jwt_required
 def create_edge():
     """Create a relationship between two existing nodes.
 
@@ -82,18 +80,21 @@ def create_edge():
         return jsonify({"error": str(e)}), 500
  
 @project_blueprint.route("/nodes", methods=["GET"])
+@jwt_required
 def get_nodes():
     nodes = service.get_all_nodes()
     return jsonify(nodes), 200
 
 
 @project_blueprint.route("/edges", methods=["GET"])
+@jwt_required
 def get_edges():
     edges = service.get_all_edges()
     return jsonify(edges), 200
 
 
 @project_blueprint.route("/clear", methods=["DELETE"])
+@jwt_required
 def clear_graph():
     service.clear_graph()
     return jsonify({"message": "Graph cleared"}), 200
