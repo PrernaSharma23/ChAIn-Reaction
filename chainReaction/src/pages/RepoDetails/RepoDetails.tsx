@@ -29,31 +29,41 @@ export default function RepoDetails() {
   const [localNodes, setLocalNodes] = useState<NodeDatum[]>([]);
   const [localEdges, setLocalEdges] = useState<EdgeDatum[]>([]);
 
+  // Loader
+  const [loading, setLoading] = useState(true);
+
   // -----------------------------------------------------
   // 🔥 Fetch graph data from backend (single source of truth)
   // -----------------------------------------------------
   useEffect(() => {
     const fetchGraph = async () => {
       try {
+        setLoading(true); // <-- START loader
+
         const token = sessionStorage.getItem("token");
 
-        const repoIds = viewType === "intra"
-          ? [primaryRepoId]
-          : secondRepoId
+        const repoIds =
+          viewType === "intra"
+            ? [primaryRepoId]
+            : secondRepoId
             ? [primaryRepoId, secondRepoId]
             : [primaryRepoId];
 
-        const res = await fetch("https://misty-mousy-unseparately.ngrok-free.dev/api/project/graph", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ repo_ids: repoIds }),
-        });
+        const res = await fetch(
+          "https://misty-mousy-unseparately.ngrok-free.dev/api/project/graph",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ repo_ids: repoIds }),
+          }
+        );
 
         if (!res.ok) {
           console.error("Failed to fetch graph");
+          setLoading(false);
           return;
         }
 
@@ -63,8 +73,11 @@ export default function RepoDetails() {
         setLocalNodes(data.nodes || []);
         setLocalEdges(data.edges || []);
 
+        setLoading(false); // <-- STOP loader
+
       } catch (err) {
         console.error("Graph fetch error:", err);
+        setLoading(false); // <-- STOP loader on error
       }
     };
 
@@ -90,7 +103,7 @@ export default function RepoDetails() {
     }
 
     const allowed = new Set([primaryRepoId, secondRepoId]);
-    if (!allowed.has(s.repoId ?? '') || !allowed.has(t.repoId ?? '')) {
+    if (!allowed.has(s.repoId ?? "") || !allowed.has(t.repoId ?? "")) {
       setAddEdgeMode(false);
       return;
     }
@@ -114,7 +127,7 @@ export default function RepoDetails() {
     setPendingEdge(null);
     setShowAddModal(false);
     setAddEdgeMode(false);
-
+    
     // TODO: send to backend when API is ready
   };
 
@@ -123,6 +136,16 @@ export default function RepoDetails() {
     setPendingEdge(null);
     setAddEdgeMode(false);
   };
+
+  // loader UI
+  if (loading) {
+    return (
+      <div className="graph-loader">
+        <div className="spinner"></div>
+        <p>Loading graph...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="repo-page-wrapper" style={{ display: "flex", gap: 0 }}>

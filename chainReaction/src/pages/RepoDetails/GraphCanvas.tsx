@@ -153,6 +153,44 @@ export default function GraphCanvas({
     // overlay for temporary visuals (pointer-events none so it doesn't block nodes)
     const overlay = svg.append("g").attr("class", "overlay-layer").style("pointer-events", "none");
 
+    // --------------------------------------------------
+    // ZOOM + LEVEL OF DETAIL (LOD)
+    // --------------------------------------------------
+    const zoomLayer = svg.append("g").attr("class", "zoom-layer");
+    zoomLayer.append(() => gMain.node());  // move main graph inside zoom layer
+    zoomLayer.append(() => overlay.node());
+
+    // Default node/edge sizes
+    const BASE_NODE_R = 22;
+    const BASE_NODE_STROKE = 3;
+    const BASE_EDGE_WIDTH = 2.2;
+
+    const zoomBehavior = d3.zoom().on("zoom", (event) => {
+      const k = event.transform.k;
+
+      // apply pan/zoom
+      zoomLayer.attr("transform", event.transform);
+
+      // ----- LOD RULES -----
+      // node size scaling
+      nodeG.selectAll("circle")
+        .attr("r", BASE_NODE_R / Math.sqrt(k))
+        .attr("stroke-width", BASE_NODE_STROKE / Math.sqrt(k));
+
+      // edge thickness scaling
+      linkLines.attr("stroke-width", BASE_EDGE_WIDTH / Math.sqrt(k));
+
+      // hide node labels if zoomed out
+      nodeG.selectAll("text")
+        .attr("opacity", k > 0.9 ? 1 : k > 0.5 ? 0.4 : 0);
+
+      // hide edge labels aggressively when zoomed out
+      edgeLabels.attr("opacity", k > 1.4 ? 1 : 0);
+    });
+
+    svg.call(zoomBehavior as any);
+
+
     // legend
     const legend = svg.append("g").attr("transform", "translate(20,20)");
     Array.from(repoSet).forEach((repo, i) => {
@@ -231,7 +269,7 @@ export default function GraphCanvas({
 
     nodeG.append("text").attr("class", "node-label").attr("text-anchor", "middle").attr("dy", 32).text((d: any) => getFileName(d.name) ?? d.id);
 
-   // Debug
+    // Debug
     console.log("[GraphCanvas] nodes:", nodes.length, "links (valid):", linksForD3.length, "links (skipped):", missingEdges.length);
 
     // ---------- Add-edge interaction ----------
@@ -256,7 +294,7 @@ export default function GraphCanvas({
       const allowedReposIds = new Set([primaryRepoId, secondRepoId]);
       if (!allowedReposIds.has(d.repoId ?? "")) return;
 
-       // left-click only
+      // left-click only
       if (event.button && event.button !== 0) return;
 
       isDrawing = true;
