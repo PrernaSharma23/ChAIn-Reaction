@@ -135,3 +135,21 @@ class UserRepository:
             }
         finally:
             session.close()
+    
+    def get_repo_by_url(self, repo_url: str)-> Repo:
+        """Find repo by URL (exact match)."""
+        session = self._Session()
+        try:
+            repo = session.query(Repo).filter(Repo.url == repo_url).first()
+            return {"id": repo.id, "name": repo.name, "url": repo.url} if repo else None
+        finally:
+            session.close()
+
+    def get_repo_by_name(self, repo_name: str):
+        """Find repo by name (exact match)."""
+        session = self._Session()
+        try:
+            repo = session.query(Repo).filter(Repo.name == repo_name).first()
+            return repo
+        finally:
+            session.close()

@@ -52,10 +52,10 @@ def _is_trigger_phrase(comment_body: str) -> bool:
     comment_lower = comment_body.lower()
     return comment_lower in TRIGGER_PHRASES
 
-def _run_and_manage(repo_name, pr_no, key):
+def _run_and_manage(repo_name, pr_no, clone_url, key):
     ACTIVE_ANALYSES.add(key)
     try:
-        pr_service.analyze_pr(repo_name, pr_no)
+        pr_service.analyze_pr(repo_name, pr_no, clone_url)
     finally:
         try:
             ACTIVE_ANALYSES.remove(key)
@@ -101,6 +101,7 @@ def handle_pr_event():
         repo = payload.get("repository", {})
         repo_full_name = repo.get("full_name")
         pr_number = issue.get("number")
+        clone_url = repo.get("clone_url") 
         
         if not repo_full_name or not pr_number:
             log.warning("Missing repo or PR number")
@@ -118,7 +119,7 @@ def handle_pr_event():
             notification_service.post_comment, repo_full_name, pr_number, initial_comment
         )
 
-        run_async(_run_and_manage, repo_full_name, pr_number, key)
+        run_async(_run_and_manage, repo_full_name, pr_number, clone_url, key)
         log.info(f"Queued analysis for {repo_full_name}#{pr_number}")
 
         return jsonify({"message": "queued"}), 202

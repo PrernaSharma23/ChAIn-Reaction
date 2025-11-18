@@ -1,3 +1,4 @@
+from src.repository.user_repository import UserRepository
 from src.service.graph_delta_service import GraphDeltaService
 from src.service.impact_service import ImpactService
 from src.service.prompt_service import PromptBuilder
@@ -16,6 +17,7 @@ class PullRequestService:
         self.impact_service = ImpactService()
         self.notification_service = CommentNotificationService()
         self.llm = LLMService()
+        self.user_repository = UserRepository()
 
     def _fetch_pr_files(self, repo_full_name: str, pr_number: int):
         return self.github.get_pr_files(repo_full_name, pr_number)
@@ -26,24 +28,25 @@ class PullRequestService:
     def _compute_delta(self, analysis_result: dict):
         return self.delta_service.compute_delta(
             pr_nodes=analysis_result.get("nodes", []),
-            pr_edges=[tuple(e) for e in analysis_result.get("edges", [])],
+            pr_edges=analysis_result.get("edges", []),
         )
 
     def _post_result_comment(self, repo_full_name: str, pr_number: int, response: dict):
         self.notification_service.post_comment(repo_full_name, pr_number, response)
 
-    def analyze_pr(self, repo_full_name: str, pr_number: int) -> dict:
+    def analyze_pr(self, repo_full_name: str, pr_number: int, clone_url: str) -> dict:
         try:
             log.info(f"Analyzing PR {repo_full_name}#{pr_number}")
-
+            repo = self.user_repository.get_repo_by_url(clone_url)
+            if not repo:
+                raise Exception("Repository not found in the system. Please onboard the repo first.")
             files = self._fetch_pr_files(repo_full_name, pr_number)
             files_content = self._prepare_files_content(repo_full_name, files)
-            result = self.analyzer.analyze_files(files_content)
-            if result.get("error"):
-                raise Exception(result["error"])
+            result = self.analyzer.analyze_files(pr_number, files_content, repo)
 
             delta = self._compute_delta(result)
             log.info(f"Computed delta: {delta}")
+            # TODO handles a list of impacted nodes
             impacted = self.impact_service.get_impacted_nodes(delta)
 
             prompt = PromptBuilder.build_impact_prompt(

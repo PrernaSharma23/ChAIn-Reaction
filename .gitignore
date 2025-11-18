@@ -139,6 +139,7 @@ celerybeat.pid
 .envrc
 .venv
 secrets.txt
+tmp/
 env/
 venv/
 ENV/

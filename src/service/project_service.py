@@ -1,5 +1,5 @@
 import os
-from shutil import rmtree
+from git import rmtree
 from src.processor.repo_processor import RepoProcessor
 from src.repository.neo4j_repository import Neo4jRepository
 from src.util.logger import log
@@ -9,12 +9,12 @@ class ProjectService:
         self.repo_processor = RepoProcessor()
         self.neo_repo = Neo4jRepository()
 
-    def process_repository(self, repo_id: str, repo_name: str, repo_url: str, force_reclone: bool = False):
+    def process_repository(self, repo_id: str, repo_name: str, repo_url: str):
 
         repo_path = None
         log.info(f"Started processing for repository: {repo_url}")
         try:
-            repo_path = self.repo_processor.clone_repo(repo_name, repo_url, force=force_reclone)
+            repo_path = self.repo_processor.clone_repo(repo_name, repo_url)
 
             nodes, edges = self.repo_processor.process(repo_id, repo_path, repo_name)
             log.info(f"Extracted {len(nodes)} nodes & {len(edges)} edges. Ingesting...")
@@ -32,8 +32,6 @@ class ProjectService:
             raise
 
         finally:
-            #TODO : fix directory delete
-             
             if repo_path and os.path.exists(repo_path):
                 try:
                     rmtree(repo_path)

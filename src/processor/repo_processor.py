@@ -20,16 +20,12 @@ class RepoProcessor:
         self.router = ExtractorRouter()
         log.info("Initialized Extractor Router")
 
-    def clone_repo(self, repo_name: str, repo_url: str, force: bool = False):
+    def clone_repo(self, repo_name: str, repo_url: str):
         tmp_dir = f"./tmp/{repo_name}"
         os.makedirs("./tmp", exist_ok=True)
 
-        if force and os.path.exists(tmp_dir):
-            shutil.rmtree(tmp_dir)
-
         if os.path.exists(tmp_dir):
-            log.info(f"Using cached repo at {tmp_dir}")
-            return tmp_dir
+            git.rmtree(tmp_dir)
 
         log.info(f"Cloning repo from {repo_url} into {tmp_dir}")
 
