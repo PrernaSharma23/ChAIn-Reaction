@@ -2,9 +2,9 @@
 
 ## Overview
 
-When a developer opens a pull request on a monitored repository, ChAIn Reaction automatically analyzes the changes and determines their impact across the codebase. The system:
+When a developer opens a pull request on a monitored repository, ChAIn Reaction analyzes the changes on comment action and determines their impact across the codebase. The system:
 
-1. Receives a GitHub webhook event
+1. Receives a GitHub webhook comment event
 2. Extracts the PR diff
 3. Compares against the baseline dependency graph
 4. Identifies all potentially impacted nodes
@@ -19,7 +19,7 @@ When a developer opens a pull request on a monitored repository, ChAIn Reaction 
 
 ```
 ┌─────────────────────────────────────┐
-│  Developer opens PR or comments     │
+│  Developer opens PR & comments     │
 │  with trigger phrase on existing PR │
 └────────────┬────────────────────────┘
              │
@@ -28,7 +28,7 @@ When a developer opens a pull request on a monitored repository, ChAIn Reaction 
              │ action: created
              ▼
 ┌────────────────────────────────────────┐
-│  PR Webhook Receiver (/pr/webhook/pr)  │
+│  PR Webhook Receiver (/webhook/pr)  │
 │  ├─ Verify HMAC signature             │
 │  ├─ Parse JSON payload                │
 │  ├─ Check event type & action         │
@@ -174,7 +174,7 @@ Post "analysis in progress..."
            ▼
   ┌─────────────────────────────────────┐
   │ nodes = [node1, node2, ...]         │
-  │ edges = [(src, dst, type), ...]     │
+  │ edges = [(from, to, type), ...]     │
   └─────────────────────────────────────┘
 ```
 
@@ -409,8 +409,6 @@ Attempt 3: T + 2s + random(0-0.5)s
 - **Async Processing**: Analysis runs in background, doesn't block webhook response
 - **Duplicate Prevention**: ACTIVE_ANALYSES set prevents redundant processing
 - **Temp File Cleanup**: Git repos cleaned up using GitPython (handles locked files)
-- **Neo4j Batching**: Large graph operations use batched queries
-- **GitHub API Caching**: Reuse session for multiple file downloads
 
 ---
 
@@ -419,7 +417,6 @@ Attempt 3: T + 2s + random(0-0.5)s
 - **Webhook Validation**: HMAC-SHA256 signature verification (GitHub webhook secret)
 - **Rate Limiting**: Implicit via GitHub webhook delivery throttling
 - **Data Isolation**: Each user sees only their own repos
-- **No Credentials in Comments**: Analysis results sanitized before posting
 
 ---
 

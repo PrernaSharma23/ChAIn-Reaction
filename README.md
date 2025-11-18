@@ -181,7 +181,6 @@ GraphEdge (Neo4j)
 9. Impact set calculated: which nodes depend on changes?
 10. LLM analyzes impacted regions
 11. Results posted as PR comment
-12. Optional: notification service alerts team
 ```
 
 **[→ See detailed PR Analysis Flow](./docs/PR_ANALYSIS_FLOW.md)** | **[→ Webhook setup guide](./docs/PR_WEBHOOK_API.md)**
@@ -191,26 +190,21 @@ GraphEdge (Neo4j)
 ## API Endpoints Summary
 
 ### User Controller
-- `POST /auth/signup` - Register new user
-- `POST /auth/login` - Login and get JWT token
-- `GET /auth/profile` - Retrieve user profile
-- `PUT /auth/profile` - Update profile
-- `POST /auth/verify_token` - Verify JWT token
+- `POST /api/user/signup` - Register new user
+- `POST /api/user/login` - Login and get JWT token
+- `GET /api/user/profile` - Retrieve user profile
 
 **[→ Full User API Reference](./docs/USER_API.md)**
 
 ### Project Controller (Protected with JWT)
-- `POST /project/onboard` - Onboard a new repository
-- `POST /project/graph` - Query graph for repo IDs
-- `GET /project/nodes` - Fetch all nodes
-- `GET /project/edges` - Fetch all edges
-- `POST /project/edge` - Create new edge between nodes
-- `DELETE /project/clear` - Clear all graph data
+- `POST /api/project/onboard` - Onboard a new repository
+- `POST /api/project/graph` - Query graph for repo IDs
+- `POST /api/project/edge` - Create new edge between nodes
 
 **[→ Full Project API Reference](./docs/PROJECT_API.md)**
 
 ### Pull Request Controller (Webhook)
-- `POST /pr/webhook/pr` - GitHub webhook receiver
+- `POST /webhook/pr` - GitHub webhook receiver
 
 **[→ Full PR Webhook API Reference](./docs/PR_WEBHOOK_API.md)**
 
@@ -259,17 +253,16 @@ Comprehensive documentation is available in the `/docs` folder:
 
 | Document | Purpose |
 |----------|---------|
-| **[docs/INDEX.md](./docs/INDEX.md)** | Navigation hub and quick start guides by role |
+| **[docs/INDEX.md](./docs/INDEX.md)** | Navigation hub and quick start guides |
 | **[docs/USER_FLOWS.md](./docs/USER_FLOWS.md)** | Complete user workflows (signup, login, onboarding, graphing) |
 | **[docs/PR_ANALYSIS_FLOW.md](./docs/PR_ANALYSIS_FLOW.md)** | Detailed PR analysis pipeline with error handling |
-| **[docs/PROJECT_API.md](./docs/PROJECT_API.md)** | Graph management API reference (6 endpoints) |
+| **[docs/PROJECT_API.md](./docs/PROJECT_API.md)** | Graph management API reference |
 | **[docs/PR_WEBHOOK_API.md](./docs/PR_WEBHOOK_API.md)** | GitHub webhook setup and integration guide |
-| **[docs/USER_API.md](./docs/USER_API.md)** | Authentication API reference (6 endpoints) |
-| **[docs/DOCUMENTATION_SUMMARY.md](./docs/DOCUMENTATION_SUMMARY.md)** | Overview of documentation suite |
+| **[docs/USER_API.md](./docs/USER_API.md)** | Authentication API reference |
 
 **Recommended reading order**:
-1. [docs/INDEX.md](./docs/INDEX.md) for your role (Frontend Dev / Backend Dev / DevOps / QA)
+1. [docs/INDEX.md](./docs/INDEX.md) 
 2. [docs/USER_FLOWS.md](./docs/USER_FLOWS.md) to understand the user experience
-3. Relevant API reference for your work
+3. Relevant API reference
 
 ---

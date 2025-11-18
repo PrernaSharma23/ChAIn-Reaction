@@ -11,7 +11,7 @@ New users register for ChAIn Reaction and receive a JWT token for API access.
 │   User      │
 └──────┬──────┘
        │
-       │ 1. POST /auth/signup
+       │ 1. POST /api/user/signup
        │    { username, name, password }
        ▼
 ┌──────────────────────┐
@@ -32,7 +32,7 @@ New users register for ChAIn Reaction and receive a JWT token for API access.
 
 ### Request
 ```json
-POST /auth/signup
+POST /api/user/signup
 Content-Type: application/json
 
 {
@@ -69,7 +69,7 @@ Existing users authenticate and receive a JWT token valid for subsequent API cal
 │   User      │
 └──────┬──────┘
        │
-       │ 1. POST /auth/login
+       │ 1. POST /api/user/login
        │    { username, password }
        ▼
 ┌──────────────────────┐
@@ -91,7 +91,7 @@ Existing users authenticate and receive a JWT token valid for subsequent API cal
 
 ### Request
 ```json
-POST /auth/login
+POST /api/user/login
 Content-Type: application/json
 
 {
@@ -167,7 +167,7 @@ User adds a GitHub repository to ChAIn Reaction. On first onboarding, the system
 
 ### Request
 ```json
-POST /project/onboard
+POST /api/project/onboard
 Authorization: Bearer <JWT_TOKEN>
 Content-Type: application/json
 
@@ -187,7 +187,7 @@ Content-Type: application/json
     "repo_url": "https://github.com/user/my-java-project.git",
     "is_new": true
   },
-  "message": "Repository onboarded and processing started asynchronously"
+  "message": "Repository onboarded"
 }
 ```
 
@@ -223,7 +223,7 @@ User queries the dependency graph to visualize code structure and relationships 
 │   User     │
 └────┬───────┘
      │
-     │ 1. POST /project/graph
+     │ 1. POST /api/project/graph
      │    { repo_ids: ["uuid-1", "uuid-2"] }
      ▼
 ┌─────────────────────────────┐
@@ -239,15 +239,15 @@ User queries the dependency graph to visualize code structure and relationships 
      ▼
 ┌────────────────────────────┐
 │   UI / Frontend            │
-│  ├─ Render nodes as cards │
-│  ├─ Draw edges as lines   │
+│  ├─ Render nodes           │
+│  ├─ Draw edges            │
 │  └─ Allow interaction     │
 └────────────────────────────┘
 ```
 
 ### Request
 ```json
-POST /project/graph
+POST /api/project/graph
 Authorization: Bearer <JWT_TOKEN>
 Content-Type: application/json
 
@@ -315,8 +315,8 @@ Users can manually create edges between nodes to represent dependencies not capt
 │  graph)    │
 └────┬───────┘
      │
-     │ 1. POST /project/edge
-     │    { src, dst, type }
+     │ 1. POST /api/project/edge
+     │    { from, to, type }
      ▼
 ┌──────────────────────────────┐
 │  Neo4j Repository            │
@@ -338,13 +338,13 @@ Users can manually create edges between nodes to represent dependencies not capt
 
 ### Request
 ```json
-POST /project/edge
+POST /api/project/edge
 Authorization: Bearer <JWT_TOKEN>
 Content-Type: application/json
 
 {
-  "src": "repo1:src/main/java/com/example:Class:UserService",
-  "dst": "repo2:src/main/python:Module:api",
+  "from": "repo1:src/main/java/com/example:Class:UserService",
+  "to": "repo2:src/main/python:Module:api",
   "type": "DEPENDS_ON"
 }
 ```
@@ -354,15 +354,15 @@ Content-Type: application/json
 200 OK
 {
   "ok": true,
-  "src": "repo1:src/main/java/com/example:Class:UserService",
-  "dst": "repo2:src/main/python:Module:api",
+  "from": "repo1:src/main/java/com/example:Class:UserService",
+  "to": "repo2:src/main/python:Module:api",
   "type": "DEPENDS_ON"
 }
 ```
 
 ### Error Cases
 - `401 Unauthorized` - Missing/invalid JWT
-- `400 Bad Request` - Missing src, dst, or type; or one/both nodes don't exist
+- `400 Bad Request` - Missing from, to, or type; or one/both nodes don't exist
 - `400 Bad Request` - Invalid edge type (not in CONTAINS, DEPENDS_ON, READS_FROM, WRITES_TO)
 
 ---
@@ -374,7 +374,7 @@ Users can view their profile, associated repositories, and manage onboarded proj
 
 ### Get Profile Request
 ```json
-GET /auth/profile
+GET /api/user/profile
 Authorization: Bearer <JWT_TOKEN>
 ```
 
@@ -406,12 +406,9 @@ Authorization: Bearer <JWT_TOKEN>
 
 | Action | Endpoint | Auth | Response |
 |--------|----------|------|----------|
-| Sign up | `POST /auth/signup` | No | User info |
-| Login | `POST /auth/login` | No | JWT token + profile |
-| Get Profile | `GET /auth/profile` | Yes | User + repos |
-| Onboard Repo | `POST /project/onboard` | Yes | Repo info + processing status |
-| Query Graph | `POST /project/graph` | Yes | Nodes + edges |
-| Create Edge | `POST /project/edge` | Yes | Edge info |
-| Get All Nodes | `GET /project/nodes` | Yes | Node list |
-| Get All Edges | `GET /project/edges` | Yes | Edge list |
-| Clear Graph | `DELETE /project/clear` | Yes | Confirmation |
+| Sign up | `POST /api/user/signup` | No | User info |
+| Login | `POST /api/user/login` | No | JWT token + profile |
+| Get Profile | `GET /api/user/profile` | Yes | User + repos |
+| Onboard Repo | `POST /api/project/onboard` | Yes | Repo info + processing status |
+| Query Graph | `POST /api/project/graph` | Yes | Nodes + edges |
+| Create Edge | `POST /api/project/edge` | Yes | Edge info |

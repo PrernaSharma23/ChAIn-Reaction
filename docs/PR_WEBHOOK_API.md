@@ -10,10 +10,10 @@ The ChAIn-Reaction system integrates with GitHub via **webhooks** to automatical
 ### GitHub Setup
 1. Go to repository **Settings** → **Webhooks** → **Add webhook**
 2. Configure:
-   - **Payload URL**: `https://api.chain-reaction.example.com/pr/webhook/pr`
+   - **Payload URL**: `https://api.chain-reaction.example.com/webhook/pr`
    - **Content type**: `application/json`
    - **Secret**: Set to your `GITHUB_WEBHOOK_SECRET` (store safely)
-   - **Events**: Select "Pull requests"
+   - **Events**: Select "Issue Comments"
    - **Active**: ✓ Checked
 
 ### Signature Verification
@@ -34,41 +34,37 @@ Receive GitHub PR events and automatically analyze changes.
 
 #### Request (GitHub → System)
 ```http
-POST /pr/webhook/pr
+POST /webhook/pr
 Content-Type: application/json
 X-Hub-Signature-256: sha256=abcdef1234567890...
 X-GitHub-Event: pull_request
 X-GitHub-Delivery: 12345678-1234-1234-1234-123456789012
 
 {
-  "action": "opened|synchronize|reopened",
-  "pull_request": {
-    "id": 1296269,
-    "number": 1,
-    "state": "open",
-    "title": "Fix auth flow bug",
-    "body": "Fixes #1234\n\n@ChAIn-Reaction analyze_pr",
-    "user": {
-      "login": "octocat"
-    },
-    "head": {
-      "ref": "feature-branch",
-      "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
-    },
-    "base": {
-      "ref": "main",
-      "sha": "db8c55ebf77f72cd2481888d46a0e71f4e7e4a4a"
-    },
-    "merged": false,
-    "repository": {
-      "id": 1296269,
-      "name": "Hello-World",
-      "full_name": "octocat/Hello-World",
-      "owner": {
-        "login": "octocat"
-      }
-    }
+  "action": "created",
+  "comment" : {
+    "id" : "12",
+    "body" : "start chain reaction"
+    ...
   }
+  "issue" : {
+    ...
+    pull_request": {
+        "id": 1296269,
+        "number": 1,
+        "state": "open",
+        "title": "Fix auth flow bug".
+        "head": {
+        "ref": "feature-branch",
+        "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+        },
+        "base": {
+        "ref": "main",
+        "sha": "db8c55ebf77f72cd2481888d46a0e71f4e7e4a4a"
+        }
+    }
+  } 
+  
 }
 ```
 
@@ -89,25 +85,18 @@ HTTP/1.1 200 OK
 
 The system listens for specific phrases in PR descriptions to determine whether to analyze:
 
-| Phrase | Action |
-|--------|--------|
-| `@ChAIn-Reaction analyze_pr` | Full PR analysis |
-| `@ChAIn-Reaction analyze` | Full PR analysis |
-| `@ChAIn-Reaction check_impact` | Check impact analysis only |
-| `@ChAIn-Reaction ai_comment` | Trigger AI comment generation |
-| `@ChAIn-Reaction graph_impact` | Analyze and show graph changes |
-| `@ChAIn-Reaction deps` | Show dependencies affected |
-| `@ChAIn-Reaction review` | Full code review |
-| `@ChAIn-Reaction suggest_tests` | Suggest test cases |
+| Phrase | 
+|--------|
+| `Start Chain Reaction` |
+| `Trigger Chain Reaction` |
+| `Analyze PR` |
+| `Start Analysis` |
+| `Analyze impact` |
+| `Check Impact` |
 
-### Example PR Description
+### Example PR Comment
 ```markdown
-## Summary
-Fixed authentication flow to handle concurrent requests.
-
-Fixes #1234
-
-@ChAIn-Reaction analyze_pr
+Start Chain Reaction
 ```
 
 ---
@@ -116,20 +105,15 @@ Fixes #1234
 
 When a valid trigger phrase is found:
 
-1. **Clone Repository** - Download repo from GitHub
-2. **Extract Diff** - Parse PR files using GitHub API
+
+1. **Extract Diff** - Parse PR files using GitHub API
 3. **AST Analysis** - Extract code structure (classes, methods, dependencies)
 4. **Delta Computation** - Find nodes/edges changed vs. main
 5. **Impact Analysis** - Query Neo4j to find all affected nodes
-6. **LLM Analysis** - Generate insights (with 3-retry exponential backoff)
+6. **LLM Analysis** - Generate insights
 7. **Post Comment** - Add comment to PR with findings
 
-### Processing Times
-- Standard PR (5-10 files): **2-5 seconds**
-- Large PR (20-50 files): **5-15 seconds**
-- Very large PR (100+ files): **15-60 seconds**
 
----
 
 ## Webhook Payload Structure
 
@@ -209,16 +193,7 @@ HTTP/1.1 400 Bad Request
 ```json
 HTTP/1.1 400 Bad Request
 {
-  "error": "Repository not found in system. Onboard first via POST /project/onboard"
-}
-```
-
-### Processing Error (Async)
-```json
-HTTP/1.1 202 Accepted
-{
-  "ok": true,
-  "message": "PR analysis queued. If processing fails, no comment will be posted."
+  "error": "Repository not found in system. Onboard first via POST /api/project/onboard"
 }
 ```
 
@@ -227,63 +202,30 @@ HTTP/1.1 202 Accepted
 ## Event Filters
 
 The system only responds to:
-- **Event Type**: `pull_request`
-- **Actions**: `opened`, `synchronize`, `reopened`
+- **Event Type**: `Issue Comment`
+- **Actions**: `created`
 - **Repository**: Must be onboarded in system
-- **Trigger Phrase**: Must be present in PR description
+- **Trigger Phrase**: Must be present in PR comment
 
 Other events are silently ignored (200 OK but no processing).
-
----
-
-## Security Considerations
-
-### Webhook Signature Verification
-Every incoming webhook is verified using HMAC-SHA256:
-
-```python
-# Pseudo-code
-expected_signature = "sha256=" + hmac.new(
-    secret.encode(),
-    body.encode(),
-    hashlib.sha256
-).hexdigest()
-
-received_signature = request.headers.get("X-Hub-Signature-256")
-
-if not constant_time_compare(expected_signature, received_signature):
-    return 401  # Unauthorized
-```
-
-**Why**: Prevents malicious actors from sending fake PR events.
-
-### Token Security
-- GitHub OAuth token stored in environment variable `GITHUB_TOKEN`
-- Never logged or exposed in error messages
-- Rotated quarterly
-
-### Rate Limiting (Future)
-- Currently: Unlimited webhook processing
-- Planned: 100 webhooks/minute per repository
 
 ---
 
 ## Example Workflow
 
 ### Step 1: Developer Creates PR
-Developer opens PR with trigger phrase:
+Developer creates a PR and comments trigger phrase:
 ```
-@ChAIn-Reaction analyze_pr
+ChA Reaction 
 ```
 
 ### Step 2: GitHub Sends Webhook
 ```json
 {
-  "action": "opened",
-  "pull_request": {
+  "action": "created",
+  "comment": {
     "number": 42,
-    "title": "Refactor user service",
-    "body": "...\n@ChAIn-Reaction analyze_pr"
+    "body": "...\nChAIn Reaction"
   }
 }
 ```
@@ -304,7 +246,7 @@ Developer opens PR with trigger phrase:
 [3] Analyze AST
 [4] Compute delta
 [5] Get impact nodes
-[6] LLM analysis (with retry)
+[6] LLM analysis
 [7] Post comment
 ```
 
@@ -344,44 +286,6 @@ This refactoring reduces authentication latency by ~15% and improves thread safe
    - Response body
    - Retry count
 
-### Enable Debug Logging
-Set environment variable:
-```bash
-export PR_WEBHOOK_DEBUG=true
-```
-
-Then check logs:
-```bash
-docker logs chain-reaction | grep "webhook"
-```
-
-### Manual Test
-```bash
-# Create test payload
-cat > payload.json << 'EOF'
-{
-  "action": "opened",
-  "pull_request": {
-    "number": 999,
-    "title": "Test PR",
-    "body": "@ChAIn-Reaction analyze_pr",
-    "head": {"sha": "abc123"},
-    "base": {"sha": "def456"},
-    "repository": {"full_name": "octocat/Hello-World"}
-  }
-}
-EOF
-
-# Sign payload
-SECRET="your-webhook-secret"
-SIGNATURE=$(echo -n "$(cat payload.json)" | openssl dgst -sha256 -hmac "$SECRET" -hex | sed 's/^.*= //')
-
-# Send to webhook
-curl -X POST "http://localhost:5000/pr/webhook/pr" \
-  -H "Content-Type: application/json" \
-  -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
-  -d @payload.json
-```
 
 ---
 

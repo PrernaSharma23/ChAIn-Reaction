@@ -1,9 +1,5 @@
 # Project Controller API Reference
 
-## Base URL
-```
-https://api.chain-reaction.example.com/project
-```
 
 ## Authentication
 All endpoints (except public routes) require a JWT token in the `Authorization` header:
@@ -20,7 +16,7 @@ Create or link a GitHub repository to the user's account and trigger initial pro
 
 #### Request
 ```http
-POST /project/onboard
+POST /api/project/onboard
 Authorization: Bearer <JWT_TOKEN>
 Content-Type: application/json
 
@@ -86,7 +82,7 @@ Retrieve nodes and edges for one or more repositories, useful for visualization.
 
 #### Request
 ```http
-POST /project/graph
+POST /api/project/graph
 Authorization: Bearer <JWT_TOKEN>
 Content-Type: application/json
 
@@ -159,65 +155,6 @@ HTTP/1.1 500 Internal Server Error
 }
 ```
 
----
-
-### 3. Get All Nodes
-Retrieve all nodes in the graph (across all user's repositories).
-
-#### Request
-```http
-GET /project/nodes
-Authorization: Bearer <JWT_TOKEN>
-```
-
-#### Response
-```json
-HTTP/1.1 200 OK
-[
-  {
-    "uid": "550e8400:src/main/java/com/example:class:UserService",
-    "labels": ["Entity"],
-    "repo_id": "550e8400-e29b-41d4-a716-446655440000",
-    "kind": "class",
-    "name": "UserService"
-  },
-  {
-    "uid": "550e8401:src/api:module:auth",
-    "labels": ["Entity"],
-    "repo_id": "550e8400-e29b-41d4-a716-446655440001",
-    "kind": "module",
-    "name": "auth"
-  }
-]
-```
-
----
-
-### 4. Get All Edges
-Retrieve all edges (relationships) in the graph.
-
-#### Request
-```http
-GET /project/edges
-Authorization: Bearer <JWT_TOKEN>
-```
-
-#### Response
-```json
-HTTP/1.1 200 OK
-[
-  {
-    "src": "550e8400:src/main/java/com/example:class:UserService",
-    "type": "CONTAINS",
-    "dst": "550e8400:src/main/java/com/example:method:authenticate"
-  },
-  {
-    "src": "550e8401:src/api:module:auth",
-    "type": "DEPENDS_ON",
-    "dst": "550e8400:src/main/java/com/example:class:UserService"
-  }
-]
-```
 
 ---
 
@@ -226,13 +163,13 @@ Manually create a dependency edge between two nodes to represent relationships n
 
 #### Request
 ```http
-POST /project/edge
+POST /api/project/edge
 Authorization: Bearer <JWT_TOKEN>
 Content-Type: application/json
 
 {
-  "src": "550e8400:src/main/java/com/example:class:UserService",
-  "dst": "550e8401:src/api:module:auth",
+  "from": "550e8400:src/main/java/com/example:class:UserService",
+  "to": "550e8401:src/api:module:auth",
   "type": "DEPENDS_ON"
 }
 ```
@@ -240,8 +177,8 @@ Content-Type: application/json
 #### Parameters
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| `src` | string | Yes | Source node UID |
-| `dst` | string | Yes | Destination node UID |
+| `from` | string | Yes | Source node UID |
+| `to` | string | Yes | Destination node UID |
 | `type` | string | Yes | Edge type: CONTAINS, DEPENDS_ON, READS_FROM, WRITES_TO |
 
 #### Response
@@ -249,8 +186,8 @@ Content-Type: application/json
 HTTP/1.1 200 OK
 {
   "ok": true,
-  "src": "550e8400:src/main/java/com/example:class:UserService",
-  "dst": "550e8401:src/api:module:auth",
+  "from": "550e8400:src/main/java/com/example:class:UserService",
+  "to": "550e8401:src/api:module:auth",
   "type": "DEPENDS_ON"
 }
 ```
@@ -259,7 +196,7 @@ HTTP/1.1 200 OK
 ```json
 HTTP/1.1 400 Bad Request
 {
-  "error": "src, dst and type are required"
+  "error": "from, to and type are required"
 }
 ```
 
@@ -277,24 +214,7 @@ HTTP/1.1 400 Bad Request
 }
 ```
 
----
 
-### 6. Clear Graph
-Delete all nodes and edges from the graph. **Use with caution.**
-
-#### Request
-```http
-DELETE /project/clear
-Authorization: Bearer <JWT_TOKEN>
-```
-
-#### Response
-```json
-HTTP/1.1 200 OK
-{
-  "message": "Graph cleared"
-}
-```
 
 ---
 
@@ -319,10 +239,7 @@ HTTP/1.1 200 OK
   "labels": ["Entity"],
   
   // Additional metadata (JSON string)
-  "meta": "{\"visibility\": \"public\", \"is_abstract\": false}",
-  
-  // Optional timestamp
-  "created_at": "2025-11-18T10:30:45.123Z"
+  "meta": "{\"visibility\": \"public\", \"is_abstract\": false}"
 }
 ```
 
@@ -348,17 +265,9 @@ HTTP/1.1 200 OK
 | Type | Meaning |
 |------|---------|
 | `CONTAINS` | Parent-child relationship (e.g., class contains method) |
-| `DEPENDS_ON` | Functional dependency (e.g., class A calls class B) |
+| `DEPENDS_ON` | Functional dependency (e.g., class/Method A calls class/Method B) |
 | `READS_FROM` | Data flow (e.g., code reads from table/variable) |
 | `WRITES_TO` | Data flow (e.g., code writes to table/variable) |
-
----
-
-## Rate Limiting
-
-Currently no rate limiting enforced. Monitor `/project/nodes` and `/project/edges` carefully as they can return large datasets.
-
-**Recommendation**: Implement pagination in future versions.
 
 ---
 
@@ -372,7 +281,7 @@ TOKEN="your-jwt-token-here"
 API="https://api.chain-reaction.example.com"
 
 # Repo 1
-curl -X POST "$API/project/onboard" \
+curl -X POST "$API/api/project/onboard" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -381,7 +290,7 @@ curl -X POST "$API/project/onboard" \
   }'
 
 # Repo 2
-curl -X POST "$API/project/onboard" \
+curl -X POST "$API/api/project/onboard" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -392,7 +301,7 @@ curl -X POST "$API/project/onboard" \
 
 ### Example 2: Query Graph for Visualization
 ```bash
-curl -X POST "https://api.chain-reaction.example.com/project/graph" \
+curl -X POST "https://api.chain-reaction.example.com/api/project/graph" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -402,12 +311,12 @@ curl -X POST "https://api.chain-reaction.example.com/project/graph" \
 
 ### Example 3: Create Cross-Repo Dependency
 ```bash
-curl -X POST "https://api.chain-reaction.example.com/project/edge" \
+curl -X POST "https://api.chain-reaction.example.com/api/project/edge" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "src": "repo1:src/PaymentProcessor:class:PaymentHandler",
-    "dst": "repo2:src/audit:class:AuditLogger",
+    "from": "repo1:src/PaymentProcessor:class:PaymentHandler",
+    "to": "repo2:src/audit:class:AuditLogger",
     "type": "DEPENDS_ON"
   }'
 ```
