@@ -36,7 +36,7 @@ class PullRequestService:
 
             files = self._fetch_pr_files(repo_full_name, pr_number)
             files_content = self._prepare_files_content(repo_full_name, files)
-            result = self.analyzer.analyze_files(files_content)
+            result = self.analyzer.analyze_files(repo_full_name, files_content)
             if result.get("error"):
                 raise Exception(result["error"])
 
@@ -50,6 +50,7 @@ class PullRequestService:
                 impact_nodes=impacted,
             )
 
+            llm_response = {"error": "LLM failed"}
             try:
                 llm_response = self.llm.call(prompt)
                 log.info("LLM response received")

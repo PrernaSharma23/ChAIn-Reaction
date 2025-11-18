@@ -1,29 +1,49 @@
-from src.processor.tree_sitter_extractor import TreeSitterExtractor
+import os
 from src.util.logger import log
 
-
 class DiffAnalyzerService:
-    def __init__(self, ):
-        self.extractor = TreeSitterExtractor()
+    def __init__(self):
+        from src.extractor.java.java_extractor import JavaExtractor
+        from src.extractor.python.python_extractor import PythonExtractor
 
-    def analyze_files(self, files_content: dict) -> dict:
+        self.extractors = {
+            ".java": JavaExtractor(),
+            ".py": PythonExtractor(),
+        }
+
+    def analyze_files(self, repo_full_name: str, files_content: dict) -> dict:
         try:
             all_nodes, all_edges = [], []
 
             for file_path, content in files_content.items():
-                lang = self.extractor.get_language(file_path)
-                if not lang:
+                if not content:
                     continue
 
-                symbols = self.extractor.extract_from_string(content, file_path, lang)
-                file_result = {"symbols": symbols, "language": lang}
+                ext = os.path.splitext(file_path)[1]
 
-                nodes = self.extractor.convert_symbols_to_nodes("repo", file_path, file_result)
-                edges = self.extractor.derive_edges_from_symbols("repo", file_path, file_result)
-                all_nodes += nodes
-                all_edges += edges
+                extractor = self.extractors.get(ext)
+                if not extractor:
+                    continue  
+
+                if ext == ".java":
+                    from src.extractor.java.java_ast import JavaAST
+                    ast = JavaAST("PR", repo_full_name, file_path, content)
+
+                    tree = extractor.parser.parse(content.encode("utf-8"))
+                    nodes, edges = ast.walk(tree.root_node)
+
+                elif ext == ".py":
+                    from src.extractor.python.python_ast import PythonAST
+                    ast = PythonAST("PR", repo_full_name, file_path, content)
+
+                    tree = extractor.parser.parse(content.encode("utf-8"))
+                    nodes, edges = ast.walk(tree.root_node)
+
+                all_nodes.extend(nodes)
+                all_edges.extend(edges)
 
             return {"nodes": all_nodes, "edges": all_edges}
+
         except Exception as e:
             log.error(f"DiffAnalyzerService.analyze_files error: {e}")
             return {"error": str(e)}
