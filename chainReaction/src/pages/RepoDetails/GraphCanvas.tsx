@@ -150,13 +150,17 @@ export default function GraphCanvas({
 
     const gMain = svg.append("g").attr("class", "g-main");
 
-    // overlay for temporary visuals (pointer-events none so it doesn't block nodes)
-    const overlay = svg.append("g").attr("class", "overlay-layer").style("pointer-events", "none");
-
     // --------------------------------------------------
     // ZOOM + LEVEL OF DETAIL (LOD)
     // --------------------------------------------------
     const zoomLayer = svg.append("g").attr("class", "zoom-layer");
+    // overlay layer inside zoomLayer so temp edges use graph coordinates when zoomed
+    const overlay = zoomLayer
+      .append("g")
+      .attr("class", "overlay-layer")
+      .style("pointer-events", "none");
+
+
     zoomLayer.append(() => gMain.node());  // move main graph inside zoom layer
     zoomLayer.append(() => overlay.node());
 
@@ -328,7 +332,7 @@ export default function GraphCanvas({
 
     const onMove = (event: MouseEvent) => {
       if (!isDrawing || !tempLine) return;
-      const pt = d3.pointer(event, svg.node());
+      const pt = d3.pointer(event, zoomLayer.node());
       tempLine.attr("x2", pt[0]).attr("y2", pt[1]);
     };
 
