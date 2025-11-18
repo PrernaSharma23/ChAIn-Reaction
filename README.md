@@ -47,10 +47,6 @@
 - **HMAC Verification**: Secure webhook payload validation (SHA-256)
 - **API**: REST calls to post comments and retrieve file diffs
 
-### DevOps & Infrastructure
-- **Containerization**: Docker & Docker Compose
-- **Monitoring**: Prometheus for metrics
-- **Logging**: Centralized logging utility
 
 ---
 
@@ -241,11 +237,6 @@ export DATABASE_URL=postgresql://user:password@localhost:5432/chain_reaction
 python main.py
 ```
 
-### Docker
-```bash
-docker-compose up
-```
-
 ---
 
 ## Configuration
@@ -282,13 +273,3 @@ Comprehensive documentation is available in the `/docs` folder:
 3. Relevant API reference for your work
 
 ---
-
-## Contributing
-
-See `CONTRIBUTING.md` for development guidelines.
-
----
-
-## License
-
-See `LICENSE` file.
