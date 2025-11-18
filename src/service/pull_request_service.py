@@ -1,4 +1,5 @@
 from src.service.graph_delta_service import GraphDeltaService
+from src.service.impact_service import ImpactService
 from src.service.prompt_service import PromptBuilder
 from src.util.logger import log
 from src.service.comment_notification_service import CommentNotificationService
@@ -12,6 +13,7 @@ class PullRequestService:
         self.github = GitHubService()
         self.analyzer = DiffAnalyzerService()
         self.delta_service = GraphDeltaService()
+        self.impact_service = ImpactService()
         self.notification_service = CommentNotificationService()
         self.llm = LLMService()
 
@@ -41,7 +43,8 @@ class PullRequestService:
                 raise Exception(result["error"])
 
             delta = self._compute_delta(result)
-            impacted = self.delta_service.get_impacted_nodes(delta)
+            log.info(f"Computed delta: {delta}")
+            impacted = self.impact_service.get_impacted_nodes(delta)
 
             prompt = PromptBuilder.build_impact_prompt(
                 repo=repo_full_name,

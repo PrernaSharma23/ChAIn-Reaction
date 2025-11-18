@@ -1,6 +1,6 @@
 # ChAIn Reaction - Impact Analysis Platform
 
-> 📚 **Start here**: [Documentation Index](./docs/INDEX.md) for complete guides and API references
+> 📚 **Start here**: [Documentation Index](./INDEX.md) for complete guides and API references
 
 ## Project Overview
 
@@ -17,7 +17,7 @@
   - Posts findings as comments on the GitHub PR
 - **Real-Time Notifications**: GitHub webhook integration provides instant feedback during code review.
 
-**[→ Learn more about PR Analysis Flow](./docs/PR_ANALYSIS_FLOW.md)**
+**[→ Learn more about PR Analysis Flow](./PR_ANALYSIS_FLOW.md)**
 
 ---
 
@@ -91,7 +91,7 @@ PostgreSQL  Neo4j   OpenAI API
 (Users)     (Graphs) (LLM)
 ```
 
-**[→ See detailed PR Analysis Flow diagram](./docs/PR_ANALYSIS_FLOW.md#processing-pipeline)**
+**[→ See detailed PR Analysis Flow diagram](./PR_ANALYSIS_FLOW.md#processing-pipeline)**
 
 ---
 
@@ -170,7 +170,7 @@ GraphEdge (Neo4j)
 5. Repo metadata stored in PostgreSQL
 ```
 
-**[→ See user workflow with examples](./docs/USER_FLOWS.md)**
+**[→ See user workflow with examples](./USER_FLOWS.md)**
 
 ### Pull Request Analysis
 ```
@@ -188,7 +188,7 @@ GraphEdge (Neo4j)
 12. Optional: notification service alerts team
 ```
 
-**[→ See detailed PR Analysis Flow](./docs/PR_ANALYSIS_FLOW.md)** | **[→ Webhook setup guide](./docs/PR_WEBHOOK_API.md)**
+**[→ See detailed PR Analysis Flow](./PR_ANALYSIS_FLOW.md)** | **[→ Webhook setup guide](./PR_WEBHOOK_API.md)**
 
 ---
 
@@ -201,7 +201,7 @@ GraphEdge (Neo4j)
 - `PUT /auth/profile` - Update profile
 - `POST /auth/verify_token` - Verify JWT token
 
-**[→ Full User API Reference](./docs/USER_API.md)**
+**[→ Full User API Reference](./USER_API.md)**
 
 ### Project Controller (Protected with JWT)
 - `POST /project/onboard` - Onboard a new repository
@@ -211,12 +211,12 @@ GraphEdge (Neo4j)
 - `POST /project/edge` - Create new edge between nodes
 - `DELETE /project/clear` - Clear all graph data
 
-**[→ Full Project API Reference](./docs/PROJECT_API.md)**
+**[→ Full Project API Reference](./PROJECT_API.md)**
 
 ### Pull Request Controller (Webhook)
 - `POST /pr/webhook/pr` - GitHub webhook receiver
 
-**[→ Full PR Webhook API Reference](./docs/PR_WEBHOOK_API.md)**
+**[→ Full PR Webhook API Reference](./PR_WEBHOOK_API.md)**
 
 ---
 
@@ -268,17 +268,17 @@ Comprehensive documentation is available in the `/docs` folder:
 
 | Document | Purpose |
 |----------|---------|
-| **[docs/INDEX.md](./docs/INDEX.md)** | Navigation hub and quick start guides by role |
-| **[docs/USER_FLOWS.md](./docs/USER_FLOWS.md)** | Complete user workflows (signup, login, onboarding, graphing) |
-| **[docs/PR_ANALYSIS_FLOW.md](./docs/PR_ANALYSIS_FLOW.md)** | Detailed PR analysis pipeline with error handling |
-| **[docs/PROJECT_API.md](./docs/PROJECT_API.md)** | Graph management API reference (6 endpoints) |
-| **[docs/PR_WEBHOOK_API.md](./docs/PR_WEBHOOK_API.md)** | GitHub webhook setup and integration guide |
-| **[docs/USER_API.md](./docs/USER_API.md)** | Authentication API reference (6 endpoints) |
-| **[docs/DOCUMENTATION_SUMMARY.md](./docs/DOCUMENTATION_SUMMARY.md)** | Overview of documentation suite |
+| **[INDEX.md](./INDEX.md)** | Navigation hub and quick start guides by role |
+| **[USER_FLOWS.md](./USER_FLOWS.md)** | Complete user workflows (signup, login, onboarding, graphing) |
+| **[PR_ANALYSIS_FLOW.md](./PR_ANALYSIS_FLOW.md)** | Detailed PR analysis pipeline with error handling |
+| **[PROJECT_API.md](./PROJECT_API.md)** | Graph management API reference (6 endpoints) |
+| **[PR_WEBHOOK_API.md](./PR_WEBHOOK_API.md)** | GitHub webhook setup and integration guide |
+| **[USER_API.md](./USER_API.md)** | Authentication API reference (6 endpoints) |
+| **[DOCUMENTATION_SUMMARY.md](./DOCUMENTATION_SUMMARY.md)** | Overview of documentation suite |
 
 **Recommended reading order**:
-1. [docs/INDEX.md](./docs/INDEX.md) for your role (Frontend Dev / Backend Dev / DevOps / QA)
-2. [docs/USER_FLOWS.md](./docs/USER_FLOWS.md) to understand the user experience
+1. [INDEX.md](./INDEX.md) for your role (Frontend Dev / Backend Dev / DevOps / QA)
+2. [USER_FLOWS.md](./USER_FLOWS.md) to understand the user experience
 3. Relevant API reference for your work
 
 ---
