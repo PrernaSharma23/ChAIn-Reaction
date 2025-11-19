@@ -28,6 +28,7 @@ export default function GraphCanvas({
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const hasFitAppliedRef = useRef(false);
 
   useEffect(() => {
     if (!graphData || !graphData.nodes) return;
@@ -203,7 +204,12 @@ export default function GraphCanvas({
     });
 
     // forces
-    const forceX = d3.forceX((d: any) => (d.repoId === nodes[0]?.repoId ? SVG_W * 0.25 : SVG_W * 0.75)).strength(0.09);
+    const forceX = d3.forceX((d: any) => {
+      if (d.repoId === primaryRepoId) return SVG_W * 0.25;
+      if (d.repoId === secondRepoId) return SVG_W * 0.75;
+      return SVG_W * 0.5; // neutral
+    }).strength(0.3);
+
     const forceY = d3.forceY(SVG_H / 2).strength(0.04);
     const linkForce = d3.forceLink(linksForD3 as any).id((d: any) => d.id).distance(200);
 
@@ -449,6 +455,36 @@ export default function GraphCanvas({
       linkGroup.selectAll("text").attr("x", (d: any) => ((d.source?.x ?? 0) + (d.target?.x ?? 0)) / 2).attr("y", (d: any) => ((d.source?.y ?? 0) + (d.target?.y ?? 0)) / 2);
 
       nodeG.attr("transform", (d: any) => `translate(${d.x ?? 0},${d.y ?? 0})`);
+    });
+
+    simulation.on("end", () => {
+      if (hasFitAppliedRef.current) return;
+      hasFitAppliedRef.current = true;
+
+      try {
+        const gNode = zoomLayer.node() as SVGGElement;
+        if (!gNode) return;
+
+        const bbox = gNode.getBBox();
+
+        const fullW = SVG_W;
+        const fullH = SVG_H;
+
+        const scale = Math.min(
+          fullW / bbox.width,
+          fullH / bbox.height
+        ) * 0.85;
+
+        const translateX = (fullW - bbox.width * scale) / 2 - bbox.x * scale;
+        const translateY = (fullH - bbox.height * scale) / 2 - bbox.y * scale;
+
+        svg.call(
+          (zoomBehavior as any).transform,
+          d3.zoomIdentity.translate(translateX, translateY).scale(scale)
+        );
+      } catch (err) {
+        console.warn("fit error", err);
+      }
     });
 
     // cleanup

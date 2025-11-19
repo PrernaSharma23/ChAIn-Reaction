@@ -131,3 +131,19 @@
 .spacer {
   flex: 1;
 }
+
+/* Full width for Choose Second Repo */
+.ghost.wide {
+  width: 100%;
+}
+
+/* Drag Mode + Manual Mode side by side */
+.controls-row.modes {
+  display: flex;
+  gap: 8px;
+}
+
+.controls-row.modes button {
+  flex: 1;
+}
+

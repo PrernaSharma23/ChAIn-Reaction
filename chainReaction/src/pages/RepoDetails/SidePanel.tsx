@@ -1,4 +1,4 @@
-// SidePanel.tsx (small changes: addEdgeMode toggle UI)
+// SidePanel.tsx (updated with Drag Mode + Manual Mode sections)
 import React from "react";
 import RepoPickerModal from "./RepoPickerModal";
 import "./SidePanel.scss";
@@ -15,6 +15,7 @@ export default function SidePanel({
   allReposIds,
   addEdgeMode,
   setAddEdgeMode,
+  openManualDependencyModal,   // <-- NEW PROP ADDED
 }: {
   primaryRepoId: string;
   viewType: "intra" | "inter";
@@ -26,6 +27,7 @@ export default function SidePanel({
   allReposIds: string[];
   addEdgeMode: boolean;
   setAddEdgeMode: (b: boolean) => void;
+  openManualDependencyModal: () => void; // <-- NEW PROP TYPE
 }) {
   const onInterClick = () => {
     setViewType("inter");
@@ -71,26 +73,57 @@ export default function SidePanel({
         {viewType === "inter" && (
           <div className="section">
             <div className="label">Second Repo</div>
-            <div className="value">{getRepoName(secondRepoId ?? '') ?? <em>Not selected</em>}</div>
+            <div className="value">
+              {getRepoName(secondRepoId ?? "") ?? <em>Not selected</em>}
+            </div>
 
-            <div className="controls-row">
-              <button className="ghost" onClick={() => setShowRepoPicker(true)}>
-                Choose Second Repo
-              </button>
+            {/* FULL-WIDTH BUTTON */}
+            <button
+              className="ghost wide"
+              onClick={() => setShowRepoPicker(true)}
+            >
+              Choose Second Repo
+            </button>
 
-              {/* Add dependency button only visible in inter view */}
+            {/* Add Dependency Section */}
+            <div className="label" style={{ marginTop: 16 }}>
+              Add Dependency
+            </div>
+
+            <div className="controls-row modes">
+              {/* DRAG MODE BUTTON */}
               <button
                 className={`primary ${addEdgeMode ? "active-mode" : ""}`}
                 disabled={!secondRepoId}
                 onClick={() => setAddEdgeMode(!addEdgeMode)}
-                title={addEdgeMode ? "Cancel add dependency" : "Add dependency (drag from source to target)"}
+                title={
+                  addEdgeMode
+                    ? "Cancel drag mode"
+                    : "Add via Graph (drag from source to target)"
+                }
               >
-                {addEdgeMode ? "Cancel Add" : "Add Dependency"}
+                Drag Mode
+              </button>
+
+              {/* MANUAL MODE BUTTON */}
+              <button
+                className="primary"
+                disabled={!secondRepoId}
+                onClick={openManualDependencyModal}
+                title="Add manually (no dragging)"
+              >
+                Manual Mode
               </button>
             </div>
 
             {addEdgeMode && (
-              <div style={{ marginTop: 8, color: "#bcd5ea", fontSize: 12 }}>
+              <div
+                style={{
+                  marginTop: 8,
+                  color: "#bcd5ea",
+                  fontSize: 12,
+                }}
+              >
                 Drag from source node to target node. Only cross-repo edges allowed.
               </div>
             )}

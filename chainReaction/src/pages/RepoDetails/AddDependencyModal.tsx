@@ -11,6 +11,8 @@ export default function AddDependencyModal({
   isOpen,
   sourceId,
   targetId,
+  primaryRepoId,
+  secondRepoId,
   nodes,
   onConfirm,
   onCancel,
@@ -18,6 +20,8 @@ export default function AddDependencyModal({
   isOpen: boolean;
   sourceId: string | null;
   targetId: string | null;
+  primaryRepoId: string;
+  secondRepoId: string | null;
   nodes: NodeDatum[];
   onConfirm: (type: string, from?: string, to?: string) => void;
   onCancel: () => void;
@@ -33,16 +37,15 @@ export default function AddDependencyModal({
   );
 
   const repoOptions = useMemo(() => {
-    const ids = _.uniq(
-      [sourceNode?.repoId ?? null, targetNode?.repoId ?? null].filter(Boolean)
-    ) as string[];
+  const ids = [primaryRepoId, secondRepoId].filter(Boolean) as string[];
 
-    return ids.map((id) => ({
-      label: getRepoName(id),
-      value: id,
-      meta: id,
-    }));
-  }, [sourceNode, targetNode]);
+  return ids.map((id) => ({
+    label: getRepoName(id),
+    value: id,
+    meta: id,
+  }));
+}, [primaryRepoId, secondRepoId]);
+
 
   const [selectedSourceRepo, setSelectedSourceRepo] = useState<Option | null>(null);
   const [selectedTargetRepo, setSelectedTargetRepo] = useState<Option | null>(null);
