@@ -20,7 +20,6 @@ export default function RepoPickerModal({
   onSelect,
   onClose,
 }: RepoPickerModalProps) {
-  if (!isOpen) return null;
 
   const [temp, setTemp] = React.useState("");
 
@@ -28,6 +27,8 @@ export default function RepoPickerModal({
   React.useEffect(() => {
     setTemp("");
   }, [isOpen]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="repo-modal-overlay">

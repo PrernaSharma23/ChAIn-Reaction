@@ -82,7 +82,7 @@ export default function RepoDetails() {
     };
 
     fetchGraph();
-  }, [primaryRepoId, secondRepoId, viewType]);
+  }, [primaryRepoId, secondRepoId]);
   // -----------------------------------------------------
 
   // Drag-complete callback from GraphCanvas
@@ -112,24 +112,55 @@ export default function RepoDetails() {
     setShowAddModal(true);
   };
 
-  const handleConfirmAdd = async (type: string) => {
-    if (!pendingEdge) return;
+ const handleConfirmAdd = async (
+  type: string,
+  fromOverride?: string,
+  toOverride?: string
+) => {
+  if (!pendingEdge) return;
 
-    const newEdge: EdgeDatum = {
-      from: pendingEdge.from,
-      to: pendingEdge.to,
-      type,
-    };
+  const from = fromOverride ?? pendingEdge.from;
+  const to = toOverride ?? pendingEdge.to;
 
-    // Optimistic local update
+  const newEdge: EdgeDatum = {
+    from,
+    to,
+    type,
+  };
+
+  // Close modal immediately (UX)
+  setPendingEdge(null);
+  setShowAddModal(false);
+  setAddEdgeMode(false);
+
+  try {
+    const token = sessionStorage.getItem("token");
+    const response = await fetch("https://misty-mousy-unseparately.ngrok-free.dev/api/project/edge", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // <-- ensure token variable exists
+      },
+      body: JSON.stringify({
+        from,
+        to,
+        type,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to add edge");
+    }
+
+    // Now update local edges only on success
     setLocalEdges((prev) => [...prev, newEdge]);
 
-    setPendingEdge(null);
-    setShowAddModal(false);
-    setAddEdgeMode(false);
-    
-    // TODO: send to backend when API is ready
-  };
+  } catch (err) {
+    console.error("Error adding edge:", err);
+  }
+};
+
+
 
   const handleCancelAdd = () => {
     setShowAddModal(false);
