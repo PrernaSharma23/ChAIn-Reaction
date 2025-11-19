@@ -10,7 +10,41 @@ class CommentNotificationService:
         self.github_token = os.environ.get("GITHUB_TOKEN")
         self.github_api_base = "https://api.github.com"
 
-    def post_comment(self, repo_full_name: str, pr_number: int, comment_text: str) -> bool:
+    def post_acknowledgement(self, repo_full_name: str, pr_number: int) -> bool:
+        msg = (
+            "## 🔗 ChAIn Reaction In Progress\n\n"
+            "Thanks for triggering impact analysis! I'm now analyzing the dependencies and changes in this pull request.\n\n"
+            "**What I'm doing**\n"
+            "- 📊 Comparing your changes against the dependency graph\n"
+            "- 🔄 Tracing impact propagation across repositories\n"
+            "**Expected completion**\n"
+            "You'll receive an impact report shortly.\n\n"
+            "Stand by... 🚀"
+        )
+        return self.post_impact_comment(repo_full_name, pr_number, msg)
+
+    def post_error_comment(self, repo_full_name: str, pr_number: int, error_message: str) -> bool:
+        msg = (
+            "## ❌ ChAIn Reaction Analysis Error\n\n"
+            f"An error occurred while analyzing this pull request:\n\n"
+            f"```\n{error_message}\n```\n\n"
+            "If the issue persists, contact support.*\n"
+        )
+        return self.post_impact_comment(repo_full_name, pr_number, msg)
+
+    def post_no_impact_comment(self, repo_full_name: str, pr_number: int) -> bool:
+        msg = (
+            "## ✅ Impact Analysis — No Impact Detected\n\n"
+            "I ran static dependency and graph-based analysis for the changes in this pull request and did not find any downstream or transitive impacts within the repositories onboarded onto ChAIn-Reaction Platform.\n\n"
+            "**What this means**\n"
+            "- The modified files did not introduce or modify graph nodes that affect other tracked components.\n\n"
+            "**If you expected impact**\n"
+            "- Ensure the repository is onboarded and up-to-date in the system.\n"
+            "- Trigger a re-analysis by commenting: `@ChAIn-Reaction-Bot : Analyze Impact`\n\n"
+        )
+        return self.post_impact_comment(repo_full_name, pr_number, msg)
+
+    def post_impact_comment(self, repo_full_name: str, pr_number: int, comment_text: str) -> bool:
         """
         Post a comment on a PR.
         repo_full_name: e.g., "PrernaSharma23/ChAIn-Reaction"

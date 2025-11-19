@@ -42,7 +42,7 @@ class DiffAnalyzerService:
                         f.write(content)
 
             nodes, edges = self.repo_processor.process(repo_id, temp_dir, repo_name)
-            return {"nodes": nodes, "edges": edges}
+            return {"nodes": [n.to_dict() for n in nodes], "edges": [e.to_dict() for e in edges]}
         except Exception as e:
             log.error(f"DiffAnalyzerService.analyze_files error: {e}")
             return {"error": str(e)}

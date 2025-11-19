@@ -5,7 +5,7 @@ from textwrap import dedent
 class PromptBuilder:
 
     @staticmethod
-    def build_impact_prompt(repo, pr_number, delta, impact_nodes):
+    def build_impact_prompt(pr_repo_name:str, pr_number:int, delta:dict, impact_nodes:list[dict]) -> str:
         """
         Build a model-friendly prompt for generating PR impact analysis.
         """
@@ -16,14 +16,15 @@ class PromptBuilder:
 
         # Convert impacted nodes into a readable structure
         impacted_summary = [
-            f"- [{n['kind']}] {n['name']}  (path: {n['path']})"
+            f"- [{n['kind']}] {n['name']}  (path: {n['path']})\n"
+            f"  from git_repo_name: {n['repo_name']} | repo_id: {n['repo_id']}  |"
             for n in impact_nodes
         ]
 
         prompt = dedent(f"""
         You are an expert software architect and senior code reviewer.
 
-        A pull request **#{pr_number}** was raised in repository **{repo}**.
+        A pull request **#{pr_number}** was raised in repository **{pr_repo_name}**.
         Static impact analysis has identified changes across files, classes, 
         and methods using AST diff + Neo4j dependency graph.
         Generate a **clean, well-structured, GitHub-ready Markdown report** that will be posted as a PR comment.

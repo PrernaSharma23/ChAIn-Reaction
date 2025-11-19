@@ -31,10 +31,8 @@ class PullRequestService:
             pr_edges=analysis_result.get("edges", []),
         )
 
-    def _post_result_comment(self, repo_full_name: str, pr_number: int, response: dict):
-        self.notification_service.post_comment(repo_full_name, pr_number, response)
 
-    def analyze_pr(self, repo_full_name: str, pr_number: int, clone_url: str) -> dict:
+    def analyze_pr(self, repo_full_name: str, pr_number: int, clone_url: str)-> None:
         try:
             log.info(f"Analyzing PR {repo_full_name}#{pr_number}")
             repo = self.user_repository.get_repo_by_url(clone_url)
@@ -46,35 +44,34 @@ class PullRequestService:
 
             delta = self._compute_delta(result)
             log.info(f"Computed delta: {delta}")
-            # TODO handles a list of impacted nodes
-            impacted = self.impact_service.get_impacted_nodes(delta)
+            
+            impacted = self.impact_service.get_impacted_graph(delta)
+
+            if not impacted:
+                self.notification_service.post_no_impact_comment(repo_full_name, pr_number)
+                return
 
             prompt = PromptBuilder.build_impact_prompt(
-                repo=repo_full_name,
+                pr_repo_name=repo_full_name,
                 pr_number=pr_number,
                 delta=delta,
                 impact_nodes=impacted,
             )
 
+            log.info("Calling LLM for impact analysis...")
+            log.info(prompt)
+
             try:
                 llm_response = self.llm.call(prompt)
                 log.info("LLM response received")
+                self.notification_service.post_impact_comment(repo_full_name, pr_number, llm_response)
             except Exception as e:
+                self.notification_service.post_error_comment(repo_full_name, pr_number, str(e))
                 log.error(f"LLM call failed: {e}")
-
-            self._post_result_comment(repo_full_name, pr_number, llm_response)
-            return result
 
         except Exception as e:
             log.error(f"Error analyzing PR: {e}")
-            error_comment = f"## 🔗 ChAIn Reaction Analysis Error\n\n{str(e)}\n\n*Analysis failed.*"
-            self.notification_service.post_comment(repo_full_name, pr_number, error_comment)
-            return {"error": str(e)}
+            self.notification_service.post_error_comment(repo_full_name, pr_number, str(e))
 
 
-if __name__ == "__main__":
-    pr_service = PullRequestService()
-    repo = "PrernaSharma23/ChAIn-Reaction"
-    pr_no = 1
-    response = pr_service.analyze_pr(repo, pr_no)
-    print(response)
+

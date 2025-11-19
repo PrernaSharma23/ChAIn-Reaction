@@ -42,6 +42,19 @@ class GraphNode:
             created_at=created_at,
         )
 
+    def to_dict(self) -> dict:
+        return {
+            "uid": self.uid,
+            "repo_id": self.repo_id,
+            "repo_name": self.repo_name,
+            "kind": self.kind,
+            "name": self.name,
+            "language": self.language,
+            "path": self.path,
+            "meta": self.meta,
+            "created_at": self.created_at,
+        }
+
 
 @dataclass
 class GraphEdge:
@@ -60,3 +73,10 @@ class GraphEdge:
     def from_tuple(cls, t):
         # t expected as (src, dst, type)
         return cls(src=t[0], dst=t[1], type=t[2])
+    
+    def to_dict(self) -> dict:
+        return {
+            "src": self.src,
+            "dst": self.dst,
+            "type": self.type,
+        }

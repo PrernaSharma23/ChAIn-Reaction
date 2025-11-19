@@ -1,5 +1,6 @@
 import os
 from neo4j import GraphDatabase
+from src.util.logger import log
 
 class ImpactService:
     """
@@ -26,6 +27,22 @@ class ImpactService:
     # -------------------------------------------------------
     # Get impact of a node by uid
     # -------------------------------------------------------
+
+    def get_impacted_graph(self, delta: dict) -> list[dict]:
+        modified_uids = [n["uid"] for n in delta.get("modified", [])]
+        deleted_uids = [n["uid"] for n in delta.get("deleted", [])]
+        changed_uids = modified_uids + deleted_uids
+        if not changed_uids:
+            log.info("No modified/deleted nodes, no impact")
+            return []
+        impacted_map = {}
+        for uid in changed_uids:
+            impacted_nodes = self.get_impacted_nodes(uid)
+            for node in impacted_nodes:
+                impacted_map[node["uid"]] = node
+        return list(impacted_map.values())
+    
+
     def get_impacted_nodes(self, start_uid: str):
         """
         Returns full transitive impact of a starting node.
@@ -53,8 +70,9 @@ class ImpactService:
         - Includes repo-level, file-level, class-level, method-level, table-level nodes
         """
 
-        # Convert Python list → syntax: [:A|:B|:C]
-        rel_union = "|".join([f":{r}" for r in allowed_rels])
+        # Convert Python list → syntax: [:A|B|C] (only first colon, then pipe without colons)
+        rel_union = "|".join([r if i == 0 else r for i, r in enumerate(allowed_rels)])
+        rel_union = f":{rel_union}"
 
         query = f"""
         MATCH (start {{uid: $start_uid}})
@@ -67,7 +85,8 @@ class ImpactService:
         RETURN DISTINCT n.uid AS uid,
                        n.name AS name,
                        n.kind AS kind,
-                       n.repo AS repo,
+                       n.repo_id AS repo_id,
+                       n.repo_name AS repo_name,
                        n.path AS path,
                        n.language AS language
         ORDER BY kind, name

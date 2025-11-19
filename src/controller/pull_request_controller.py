@@ -17,6 +17,16 @@ ACTIVE_ANALYSES: set = set()
 
 # Trigger phrases (case-insensitive) to start PR analysis
 TRIGGER_PHRASES = [
+    "@ChAIn-Reaction-Bot",
+    "@chain-reaction-bot : start analysis",
+    "@chain-reaction-bot : analyze pr",
+    "@chain-reaction-bot : analyze impact",
+    "@chain-reaction-bot analyze impact",
+    "@chain-reaction : start analysis",
+    "@chain-reaction : analyze impact",
+    "@chain-reaction : analyze pr",
+    "@chain-reaction",
+    "chain-reaction",
     "start analysis",
     "check impact",
     "analyze impact",
@@ -113,11 +123,7 @@ def handle_pr_event():
             log.info(f"Analysis already in progress for {key}, skipping")
             return jsonify({"message": "already_in_progress"}), 200
         
-        # Post initial notification comment
-        initial_comment = "🔗 **ChAIn Reaction** analysis in progress...\n\nYou will be notified once done."
-        run_async(
-            notification_service.post_comment, repo_full_name, pr_number, initial_comment
-        )
+        run_async(notification_service.post_acknowledgement, repo_full_name, pr_number)
 
         run_async(_run_and_manage, repo_full_name, pr_number, clone_url, key)
         log.info(f"Queued analysis for {repo_full_name}#{pr_number}")
