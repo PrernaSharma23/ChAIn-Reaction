@@ -10,7 +10,7 @@
 
 - **Dependency Graph Extraction**: Automatically extracts Abstract Syntax Trees (AST) from Java and Python codebases, identifying entities (classes, methods, functions) and their relationships.
 - **Cross-Repository Impact Analysis**: Allows SMEs to Connect multiple repositories to track dependencies and data flows across team projects.
-- **Pull Request Impact Detection**: When a developer opens a PR, the system:
+- **Pull Request Impact Detection**: When a developer comments on a PR, the system:
   - Compares changed code against the baseline dependency graph
   - Identifies all potentially impacted nodes (entities that depend on the changes)
   - Uses LLM to analyze semantic impact and suggest testing areas

@@ -30,13 +30,12 @@ class ImpactService:
 
     def get_impacted_graph(self, delta: dict) -> list[dict]:
         modified_uids = [n["uid"] for n in delta.get("modified", [])]
-        deleted_uids = [n["uid"] for n in delta.get("deleted", [])]
-        changed_uids = modified_uids + deleted_uids
-        if not changed_uids:
-            log.info("No modified/deleted nodes, no impact")
+
+        if not modified_uids:
+            log.info("No modified nodes, no impact")
             return []
         impacted_map = {}
-        for uid in changed_uids:
+        for uid in modified_uids:
             impacted_nodes = self.get_impacted_nodes(uid)
             for node in impacted_nodes:
                 impacted_map[node["uid"]] = node

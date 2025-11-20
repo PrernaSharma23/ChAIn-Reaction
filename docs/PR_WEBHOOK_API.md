@@ -8,6 +8,7 @@ The ChAIn-Reaction system integrates with GitHub via **webhooks** to automatical
 ## Webhook Configuration
 
 ### GitHub Setup
+1. Grant ChAIn-Reaction-Bot access to your github repository
 1. Go to repository **Settings** → **Webhooks** → **Add webhook**
 2. Configure:
    - **Payload URL**: `https://api.chain-reaction.example.com/webhook/pr`
@@ -87,6 +88,12 @@ The system listens for specific phrases in PR descriptions to determine whether 
 
 | Phrase | 
 |--------|
+@ChAIn-Reaction-Bot
+| `@chain-reaction-bot : start analysis` |
+| `@chain-reaction-bot : analyze pr` |
+| `@chain-reaction-bot : analyze impact` |
+| `@chain-reaction-bot analyze impact` |
+| `@chain-reaction : start analysis` |
 | `Start Chain Reaction` |
 | `Trigger Chain Reaction` |
 | `Analyze PR` |

@@ -7,8 +7,8 @@ from src.util.logger import log
 
 class LLMService:
     def __init__(self, retries: int = 2, backoff_factor: float = 1.0):
-        self.api_key =  os.getenv("OPENAI_API_KEY")
-        self.client = OpenAI(api_key=self.api_key)
+        self.api_key =  os.getenv("OPENAI_API_KEY", "")
+        self.client = OpenAI(api_key=self.api_key) if self.api_key else None
         self.retries = max(1, int(retries))
         self.backoff_factor = max(0.0, float(backoff_factor))
 

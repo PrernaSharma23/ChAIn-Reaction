@@ -47,6 +47,11 @@ When a developer opens a pull request on a monitored repository, ChAIn Reaction 
 
 ### Trigger Phrases
 The analysis is triggered when a comment contains any of these phrases (case-insensitive):
+- "@chain-reaction-bot : start analysis"
+- "@chain-reaction-bot : analyze pr"
+- "@chain-reaction-bot : analyze impact"
+- "@chain-reaction-bot analyze impact"
+- "@chain-reaction : start analysis"
 - "start chain reaction"
 - "check impact"
 - "analyze impact"
