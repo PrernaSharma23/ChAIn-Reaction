@@ -6,10 +6,11 @@ When a developer opens a pull request on a monitored repository, ChAIn Reaction 
 
 1. Receives a GitHub webhook comment event
 2. Extracts the PR diff
-3. Compares against the baseline dependency graph
-4. Identifies all potentially impacted nodes
-5. Uses LLM to analyze semantic impact
-6. Posts findings back as a PR comment
+3. Creates AST for Changed Files
+4. Compares against the baseline dependency graph
+5. Identifies all potentially impacted nodes
+6. Uses LLM to analyze semantic impact
+7. Posts findings back as a PR comment
 
 ---
 
