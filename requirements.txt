@@ -11,6 +11,7 @@ psycopg2-binary==2.9.11
 PyJWT==2.8.0
 flask-cors==4.0.0
 openai==1.35.0
+google-genai==1.51.0
 
 
 

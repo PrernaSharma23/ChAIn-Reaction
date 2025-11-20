@@ -16,7 +16,7 @@ class PullRequestService:
         self.delta_service = GraphDeltaService()
         self.impact_service = ImpactService()
         self.notification_service = CommentNotificationService()
-        self.llm = LLMService()
+        self.llm = LLMService(provider="gemini")
         self.user_repository = UserRepository()
 
     def _fetch_pr_files(self, repo_full_name: str, pr_number: int):
