@@ -192,7 +192,7 @@ Complete REST API reference for user authentication:
 - **Databases**: PostgreSQL (metadata), Neo4j (graphs)
 - **Auth**: PyJWT + JWT Bearer tokens
 - **Code Analysis**: Tree-Sitter + custom extractors
-- **LLM**: OpenAI GPT-4 (with retry logic)
+- **LLM**: Gemini 2.5-Flash (with retry logic)
 - **Git**: GitPython for repo management
 - **Webhooks**: GitHub with HMAC-SHA256 verification
 

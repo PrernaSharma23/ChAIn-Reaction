@@ -1,7 +1,7 @@
 # ChAIn Reaction - Impact Analysis Platform
 
 > 📚 **Start here**: [Documentation Index](./docs/INDEX.md) for complete guides and API references
-> 📚 **Powerpoint Presentation**: [PPT Slides](./chain_reaction.pptx)
+> 📚 **Powerpoint Presentation**: [PPT Slides](./chAIn-reaction.pptx)
 
 ## Project Overview
 
@@ -39,7 +39,7 @@
 - **Language Support**: Java, Python
 
 ### LLM Integration
-- **Provider**: OpenAI (GPT-4)
+- **Provider**: Gemini (2.5-Flash)
 - **Retry Logic**: Exponential backoff with jitter for reliability
 - **Usage**: Semantic analysis of impacted code regions
 
@@ -48,6 +48,10 @@
 - **HMAC Verification**: Secure webhook payload validation (SHA-256)
 - **API**: REST calls to post comments and retrieve file diffs
 
+### Frontend Dashboard
+ - **React**: 19.2.0
+ - **D3**: For visualization
+ - **[Dashboard Docs](./chainReactionDashboard/README.md)**
 
 ---
 
@@ -84,7 +88,7 @@
          │
     ┌────┴────┬──────────┐
     ▼         ▼          ▼
-PostgreSQL  Neo4j   OpenAI API
+PostgreSQL  Neo4j   Gemini API
 (Users)     (Graphs) (LLM)
 ```
 
@@ -222,7 +226,7 @@ pip install -r requirements.txt
 
 # Configure environment variables
 export GITHUB_TOKEN=<your-github-token>
-export OPENAI_API_KEY=<your-openai-key>
+export GEMINI_API_KEY=<your-gemini-key>
 export NEO4J_URI=neo4j://127.0.0.1:7687
 export NEO4J_USER=neo4j
 export NEO4J_PASS=<password>
@@ -239,7 +243,7 @@ python main.py
 ### Environment Variables
 - `GITHUB_TOKEN` - GitHub personal access token
 - `GITHUB_WEBHOOK_SECRET` - Webhook signature secret
-- `OPENAI_API_KEY` - OpenAI API key
+- `GEMINI_API_KEY` - Gemini API key
 - `JWT_SECRET` - JWT signing secret
 - `JWT_EXP_SECONDS` - JWT expiry time (default: 86400)
 - `NEO4J_URI` - Neo4j connection URI
@@ -254,6 +258,8 @@ For UI Dashboard setup & installation refer to **[chainReactionDashboard/README.
 
 
 ![Dashboard](./docs/UI_dashboard.jpeg)
+
+![Added Dependency View(added dependency highlighted in green)](./chainReactionDashboard/docs/screenshots/AddedDependency.png)
 
 ---
 

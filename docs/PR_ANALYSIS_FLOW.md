@@ -275,7 +275,7 @@ Post "analysis in progress..."
                │
                ▼
   ┌──────────────────────────────────────────┐
-  │ OpenAI GPT-4 API                         │
+  │ Gemini 2.5-Flash API                         │
   │                                          │
   │ (Retry logic: exponential backoff)       │
   │ ├─ Attempt 1: immediate                  │
