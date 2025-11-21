@@ -78,12 +78,7 @@ class UserRepository:
             session.close()
 
     def add_repo_to_user(self, user_id: int, repo_url: str, repo_name: str):
-        """Add a repo to a user. Returns {"id": ..., "repo_name": ..., "repo_url": ..., "is_new": bool}.
-        
-        - If repo doesn't exist: creates it, maps to user, is_new=True
-        - If repo exists but not mapped: maps to user, is_new=False
-        - If repo exists and already mapped: no change, is_new=False (safe from duplicates)
-        """
+
         session = self._Session()
         try:
             user = session.query(User).filter(User.id == user_id).first()
@@ -137,7 +132,6 @@ class UserRepository:
             session.close()
     
     def get_repo_by_url(self, repo_url: str)-> Repo:
-        """Find repo by URL (exact match)."""
         session = self._Session()
         try:
             repo = session.query(Repo).filter(Repo.url == repo_url).first()
@@ -146,7 +140,6 @@ class UserRepository:
             session.close()
 
     def get_repo_by_name(self, repo_name: str):
-        """Find repo by name (exact match)."""
         session = self._Session()
         try:
             repo = session.query(Repo).filter(Repo.name == repo_name).first()

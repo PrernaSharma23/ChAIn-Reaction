@@ -1,4 +1,3 @@
-# src/extractor/java/java_ast.py
 from tree_sitter import Node
 from src.util.debug import dbg
 
@@ -15,7 +14,6 @@ class JavaAST:
         except:
             return ""
 
-    #TODO: set uid by repo_id
     def uid(self, kind, name):
         return f"{self.repo_name}:{self.path}:{kind}:{name}"
 
@@ -51,9 +49,7 @@ class JavaAST:
 
             t = node.type
 
-            # -----------------------------------
-            # CLASS
-            # -----------------------------------
+            # CLASS        
             if t == "class_declaration":
                 dbg("FOUND CLASS DECLARATION")
 
@@ -82,9 +78,7 @@ class JavaAST:
                 class_stack.pop()
                 return
 
-            # -----------------------------------
             # METHOD
-            # -----------------------------------
             if t == "method_declaration":
                 dbg("FOUND METHOD DECLARATION")
 
@@ -115,9 +109,7 @@ class JavaAST:
                 method_stack.pop()
                 return
 
-            # -----------------------------------
             # METHOD CALL (method_invocation)
-            # -----------------------------------
             if t == "method_invocation" and method_stack:
                 dbg("FOUND method_invocation")
 
@@ -131,9 +123,7 @@ class JavaAST:
                     target_uid = self.uid("method", called)
                     edges.append((caller, target_uid, "DEPENDS_ON"))
 
-            # -----------------------------------
             # CONTINUE DFS
-            # -----------------------------------
             for c in node.children:
                 visit(c)
 

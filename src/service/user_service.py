@@ -11,7 +11,6 @@ TOKEN_EXP_SECONDS = int(os.environ.get("JWT_EXP_SECONDS", "86400"))
 
 class UserService:
     def __init__(self):
-        # ensure tables exist
         try:
             create_tables()
         except Exception:

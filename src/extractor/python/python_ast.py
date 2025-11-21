@@ -10,7 +10,6 @@ class PythonAST:
     def text(self, node):
         return self.src[node.start_byte:node.end_byte]
 
-    # TODO: set uid based on repo_id
     def uid(self, kind, name):
         return f"{self.repo_name}:{self.path}:{kind}:{name}"
 

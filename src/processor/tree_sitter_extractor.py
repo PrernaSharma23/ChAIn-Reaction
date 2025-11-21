@@ -19,9 +19,7 @@ class TreeSitterExtractor:
             except Exception as e:
                 log.error(f"Failed to load parser for {lang}: {e}")
 
-    # ------------------------------------------------------------------------
     # Language detector
-    # ------------------------------------------------------------------------
     def get_language(self, filename):
         _, ext = os.path.splitext(filename)
         lang = SUPPORTED_EXT.get(ext)
@@ -57,9 +55,7 @@ class TreeSitterExtractor:
             except:
                 return ""
 
-        # --------------------------------------------------------------------
         # Extract semantic children (common for both Python and Java)
-        # --------------------------------------------------------------------
         def extract_semantic_children(node):
             semantic_types = {
                 "class_definition": "Class",
@@ -88,9 +84,7 @@ class TreeSitterExtractor:
 
             return children
 
-        # --------------------------------------------------------------------
         # Add symbol (common format)
-        # --------------------------------------------------------------------
         def add_symbol(name, type_, node, parent_name=None):
             symbols.append({
                 "name": name,
@@ -106,9 +100,7 @@ class TreeSitterExtractor:
                 "extends": []
             })
 
-        # --------------------------------------------------------------------
         # AST traversal
-        # --------------------------------------------------------------------
         def traverse(node, parent_name=None):
             t = node.type
 
@@ -174,10 +166,7 @@ class TreeSitterExtractor:
         traverse(root)
         return symbols
 
-
-    # ----------------------------------------------------------------------
     # 3. Convert symbols → Graph Nodes
-    # ----------------------------------------------------------------------
     def convert_symbols_to_nodes(self, repo_name: str, rel_path: str, file_result):
         nodes = []
         now = datetime.datetime.utcnow().isoformat() + "Z"
@@ -199,9 +188,7 @@ class TreeSitterExtractor:
 
         return nodes
 
-    # ----------------------------------------------------------------------
     # 4. Build edges from symbols
-    # ----------------------------------------------------------------------
     def derive_edges_from_symbols(self, repo_name: str, rel_path: str, file_result):
         edges = []
 
@@ -227,9 +214,7 @@ class TreeSitterExtractor:
 
         return edges
 
-    # ----------------------------------------------------------------------
     # 5. Extract from a repo path
-    # ----------------------------------------------------------------------
     def extract_from_repo(self, repo_name: str, repo_path: str):
         nodes = []
         edges = []

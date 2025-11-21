@@ -43,7 +43,6 @@ class PullRequestService:
             result = self.analyzer.analyze_files(pr_number, files_content, repo)
 
             delta = self._compute_delta(result)
-            # log.info(f"Computed delta: {delta}")
 
             impacted_nodes = self.impact_service.get_impact(delta, external_only)
             log.info(impacted_nodes)

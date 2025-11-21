@@ -6,9 +6,6 @@ from src.model.graph_model import GraphNode, GraphEdge
 
 BATCH_SIZE = 200
 
-"""
-Optimization needed
-"""
 class Neo4jRepository:
     def __init__(self):
         uri = os.getenv("NEO4J_URI", "neo4j://127.0.0.1:7687")
@@ -178,11 +175,6 @@ class Neo4jRepository:
         return {"nodes": nodes, "edges": edges}
 
     def create_edge(self, src_uid: str, dst_uid: str, edge_type: str) -> Dict[str, Any]:
-        """Create a relationship of type `edge_type` from node with uid `src_uid` to `dst_uid`.
-
-        Validates that both nodes exist and that the edge type is allowed.
-        Returns a simple status dict.
-        """
         edge_type = (edge_type or "").upper()
         if edge_type not in GraphEdge.ALLOWED:
             return {"error": f"Invalid edge type: {edge_type}"}

@@ -2,13 +2,8 @@ import os
 from typing import List, Dict, Tuple
 
 class BaseExtractor:
-    """
-    Every language extractor must implement:
-      - detect_files(repo_path)
-      - extract(repo_id, repo_path, repo_name)
-    """
 
-    EXTENSIONS = []  # override
+    EXTENSIONS = []
 
     def detect_files(self, repo_path: str) -> List[str]:
         matches = []
