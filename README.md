@@ -192,6 +192,17 @@ GraphEdge (Neo4j)
 
 ---
 
+## Trigger ChAIn-Reaction via Pull Request
+
+### User Comments Trigger Phrase
+![Trigger Via PR Comment](./docs/Trigger-chain-reaction-via-pull-request.png)
+
+### Impact Analysis Comment
+![Intra Repo Impact](./docs/chain-reaction-impact-comment.png)
+![Cross Repo Impact](./docs/docs/Cross-Repo-Impact.png)
+
+---
+
 ## API Endpoints Summary
 
 ### User Controller
