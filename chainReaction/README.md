@@ -4,7 +4,7 @@ A refined and visually captivating interface for exploring complex system-level 
 
 ## ✨ **Key Highlights**
 
-- **Immersive Dependency Visualization** powered by D3 and React Flow  
+- **Immersive Dependency Visualization** powered by D3
 - **Effortless Repository Navigation** with elegant UI panels  
 - **Lightning-Fast Rendering** enabled by Vite and TypeScript  
 - **Gracefully Designed Modals & Layouts** using modular SCSS  
@@ -60,29 +60,28 @@ npm run dev
 npm run dev
 ```
 
-## 🖼 **Screenshots**
+## 📸 Screenshots
 
-Add images here:
+### Login View
+![Login Page](./docs/screenshots/LoginPage.png)
 
-```
-docs/images/dashboard.png
-docs/images/graph.png
-docs/images/modal.png
-```
+### Dashboard View
+![Dashboard Home Page](./docs/screenshots/DashboardPage.png)
+
+### Graph View
+![Graph View (Intra mode)](./docs/screenshots/RepoGraphIntraView.png)
+![Graph View (Inter mode)](./docs/screenshots/RepoGraphInterView.png)
+
+### Add Dependency Modal
+![Add Dependency (Drag mode)](./docs/screenshots/AddDependencyDragMode.png)
+![Added Dependency View(added dependency highlighted in green)](./docs/screenshots/AddedDependency.png)
+
 
 ## 🔄 **Workflow Snapshot**
 
 ```
 User → React App → Graph Engine (D3) → UI Panels & Modals
 ``` 
-
-## 🧪 **Testing Recommendations**
-
-Add Vitest + RTL for scalable test coverage:
-
-```bash
-npm install -D vitest @testing-library/react @testing-library/jest-dom
-```
 
 ## 🛡 **Troubleshooting**
 
