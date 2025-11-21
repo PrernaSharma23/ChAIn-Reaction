@@ -199,7 +199,7 @@ GraphEdge (Neo4j)
 
 ### Impact Analysis Comment
 ![Intra Repo Impact](./docs/chain-reaction-impact-comment.png)
-![Cross Repo Impact](./docs/docs/Cross-Repo-Impact.png)
+![Cross Repo Impact](./docs/Cross-Repo-Impact.png)
 
 ---
 
