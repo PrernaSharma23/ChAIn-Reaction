@@ -14,10 +14,6 @@ user_service = UserService()
 @project_blueprint.route("/onboard", methods=["POST"])
 @jwt_required
 def onboard_project():
-    """
-    Called by UI when a new GitHub project is onboarded.
-    Payload: {"repo_name": "java_repo", "repo_url": "https://github.com/user/repo.git" }
-    """
     log.info("Onboarding new project")
     data = request.get_json() or {}
     repo_url = data.get("repo_url")
@@ -38,10 +34,6 @@ def onboard_project():
 @project_blueprint.route("/graph", methods=["POST"])
 @jwt_required
 def get_graph_for_repos():
-    """
-    POST body: {"repo_ids": ["repo_id1", "repo_id2", ...]}
-    Returns { "nodes": [...], "edges": [...] }
-    """
     data = request.get_json() or {}
     repo_ids = data.get("repo_ids")
     if not isinstance(repo_ids, list) or not repo_ids:
@@ -58,11 +50,6 @@ def get_graph_for_repos():
 @project_blueprint.route("/edge", methods=["POST"])
 @jwt_required
 def create_edge():
-    """Create a relationship between two existing nodes.
-
-    Expected JSON body: { "from": "uid1", "to": "uid2", "type": "DEPENDS_ON" }
-    Returns { ok: true } or { error: ... }
-    """
     data = request.get_json() or {}
     src = data.get("from")
     dst = data.get("to")

@@ -12,10 +12,8 @@ pr_bp = Blueprint("pr_controller", __name__)
 pr_service = PullRequestService()
 notification_service = CommentNotificationService()
 
-# track active analyses to avoid duplicate processing for same PR
 ACTIVE_ANALYSES: set = set()
 
-# Trigger phrases (case-insensitive) to start PR analysis
 TRIGGER_PHRASES = [
     "@ChAIn-Reaction-Bot",
     "@chain-reaction-bot : start analysis",
@@ -43,7 +41,6 @@ TRIGGER_PHRASES = [
     "check pr impact",
 ]
 
-# phrases that explicitly request cross-repo / external-only impact
 EXTERNAL_TRIGGER_PHRASES = [
     "@ChAIn-Reaction-Bot : cross-repo impact",
     "@chain-reaction-bot : external impact",
@@ -58,7 +55,6 @@ EXTERNAL_TRIGGER_PHRASES = [
 
 
 def _verify_signature(secret: str, body: bytes, signature: str) -> bool:
-    """Verify GitHub webhook signature (sha256)."""
     if not secret or not signature:
         return False
     
@@ -68,7 +64,6 @@ def _verify_signature(secret: str, body: bytes, signature: str) -> bool:
 
 
 def _is_trigger_phrase(comment_body: str) -> bool:
-    """Check if comment body contains any trigger phrase (case-insensitive)."""
     if not comment_body:
         return False
     
@@ -76,7 +71,6 @@ def _is_trigger_phrase(comment_body: str) -> bool:
     return comment_lower in TRIGGER_PHRASES
 
 def _is_external_trigger(comment_body: str) -> bool:
-    """Check if comment body contains any external-only trigger phrase (case-insensitive)."""
     if not comment_body:
         return False
     cl = comment_body.lower()
@@ -85,7 +79,6 @@ def _is_external_trigger(comment_body: str) -> bool:
 def _run_and_manage(repo_name, pr_no, clone_url, key, external_only: bool = False):
     ACTIVE_ANALYSES.add(key)
     try:
-        # pass external_only flag to analyze_pr (default behavior unchanged when False)
         pr_service.analyze_pr(repo_name, pr_no, clone_url, external_only)
     finally:
         try:
@@ -96,11 +89,9 @@ def _run_and_manage(repo_name, pr_no, clone_url, key, external_only: bool = Fals
 
 @pr_bp.route("/webhook/pr", methods=["POST"])
 def handle_pr_event():
-    """Handle GitHub issue_comment webhook on PRs."""
     try:
         raw_body = request.get_data()
         
-        # Verify signature
         secret = os.environ.get("GITHUB_WEBHOOK_SECRET")
         signature = request.headers.get("X-Hub-Signature-256", "")
         if not secret or not _verify_signature(secret, raw_body, signature):
@@ -109,7 +100,6 @@ def handle_pr_event():
         
         payload = json.loads(raw_body)
         
-        # Only process issue_comment creation events on PRs
         event = request.headers.get("X-GitHub-Event")
         action = payload.get("action")
         if event != "issue_comment" or action != "created":
@@ -121,15 +111,13 @@ def handle_pr_event():
             log.info("Not a PR, skipping")
             return jsonify({"message": "ignored"}), 200
         
-        # Check comment body for trigger phrases
         comment = payload.get("comment", {})
         comment_body = comment.get("body", "")
-        # Proceed if comment matches either the regular triggers OR explicit external-only triggers
+
         if not (_is_trigger_phrase(comment_body) or _is_external_trigger(comment_body)):
             return jsonify({"message": "ignored"}), 200
         
 
-        # Extract PR info
         repo = payload.get("repository", {})
         repo_full_name = repo.get("full_name")
         pr_number = issue.get("number")
@@ -139,7 +127,6 @@ def handle_pr_event():
             log.warning("Missing repo or PR number")
             return jsonify({"error": "missing_info"}), 400
         
-        # Spawn async analysis (avoid duplicates)
         key = f"{repo_full_name}#{pr_number}"
         if key in ACTIVE_ANALYSES:
             log.info(f"Analysis already in progress for {key}, skipping")
@@ -147,10 +134,8 @@ def handle_pr_event():
         
         run_async(notification_service.post_acknowledgement, repo_full_name, pr_number)
 
-        # determine whether this comment requests cross-repo impact only
         external_only = _is_external_trigger(comment_body)
 
-        # pass external_only flag through to the async runner
         run_async(_run_and_manage, repo_full_name, pr_number, clone_url, key, external_only)
         log.info(f"Queued analysis for {repo_full_name}#{pr_number} (external_only={external_only})")
 
