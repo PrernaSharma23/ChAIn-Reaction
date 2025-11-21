@@ -41,6 +41,25 @@ class ImpactService:
                 impacted_map[node["uid"]] = node
         return list(impacted_map.values())
     
+    def get_impacted_external_graph(self, delta: dict) -> list[dict]:
+        """
+        Like get_impacted_graph but only returns external impacted nodes
+        (nodes whose repo_id differs from the start node). Accepts the same
+        delta dict and returns a list[dict] of impacted node records.
+        """
+        modified_uids = [n["uid"] for n in delta.get("modified", [])]
+
+        if not modified_uids:
+            log.info("No modified nodes, no external impact")
+            return []
+
+        impacted_map = {}
+        for uid in modified_uids:
+            impacted_nodes = self.get_impacted_external_nodes(uid)
+            for node in impacted_nodes:
+                impacted_map[node["uid"]] = node
+        return list(impacted_map.values())
+    
 
     def get_impacted_nodes(self, start_uid: str):
         """
@@ -52,6 +71,20 @@ class ImpactService:
         with self.driver.session() as session:
             result = session.execute_read(
                 self._query_impact,
+                start_uid,
+                self.allowed_rels
+            )
+            return result
+
+    def get_impacted_external_nodes(self, start_uid: str):
+        """
+        Returns impacted nodes reachable from start_uid that belong to a different repo_id than the start node.
+        Same return format as get_impacted_nodes (list of dicts with uid, name, kind, repo_id, repo_name, path, language).
+        Traverses up to 10 hops following only allowed relationship types and prevents cycles.
+        """
+        with self.driver.session() as session:
+            result = session.execute_read(
+                self._query_external_impact,
                 start_uid,
                 self.allowed_rels
             )
@@ -92,4 +125,43 @@ class ImpactService:
         """
 
         result = tx.run(query, start_uid=start_uid)
+        return [record.data() for record in result]
+
+    @staticmethod
+    def _query_external_impact(tx, start_uid, allowed_rels):
+        """
+        Find impacted nodes reachable from start_uid that belong to a different repo_id.
+        Enforce directionality per relationship type to follow impact flow:
+          - CONTAINS: follow from container -> contained (startNode(rel) = current node)
+          - DEPENDS_ON, READS_FROM, WRITES_TO: follow from dependent -> dependency
+            so when propagating impact we traverse the relationship in the direction
+            that yields the dependent node (endNode(rel) = next node in path).
+        """
+        query = """
+        MATCH (start {uid: $start_uid})
+        MATCH p = (start)-[rels*1..10]-(n)
+        WHERE n.repo_id IS NOT NULL
+          AND n.repo_id <> start.repo_id
+          AND ALL(r IN rels WHERE type(r) IN $allowed_rels)
+          AND ALL(i IN RANGE(0, SIZE(rels)-1) WHERE
+                (
+                  type(rels[i]) = 'CONTAINS' AND startNode(rels[i]) = nodes(p)[i]
+                )
+                OR (
+                  (type(rels[i]) = 'DEPENDS_ON' OR type(rels[i]) = 'READS_FROM' OR type(rels[i]) = 'WRITES_TO')
+                  AND endNode(rels[i]) = nodes(p)[i]
+                )
+              )
+          AND ALL(x IN nodes(p) WHERE x IS NOT NULL)
+        RETURN DISTINCT n.uid AS uid,
+                        n.name AS name,
+                        n.kind AS kind,
+                        n.repo_id AS repo_id,
+                        n.repo_name AS repo_name,
+                        n.path AS path,
+                        n.language AS language,
+                        length(p) AS depth
+        ORDER BY n.repo_id, depth, kind, name
+        """
+        result = tx.run(query, start_uid=start_uid, allowed_rels=allowed_rels)
         return [record.data() for record in result]

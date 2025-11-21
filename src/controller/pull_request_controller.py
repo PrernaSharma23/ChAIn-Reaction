@@ -43,6 +43,16 @@ TRIGGER_PHRASES = [
     "check pr impact",
 ]
 
+# phrases that explicitly request cross-repo / external-only impact
+EXTERNAL_TRIGGER_PHRASES = [
+    "cross-repo impact",
+    "cross repo impact",
+    "external impact",
+    "impact other repos",
+    "external-only",
+    "cross-repo",
+]
+
 
 def _verify_signature(secret: str, body: bytes, signature: str) -> bool:
     """Verify GitHub webhook signature (sha256)."""
@@ -62,10 +72,18 @@ def _is_trigger_phrase(comment_body: str) -> bool:
     comment_lower = comment_body.lower()
     return comment_lower in TRIGGER_PHRASES
 
-def _run_and_manage(repo_name, pr_no, clone_url, key):
+def _is_external_trigger(comment_body: str) -> bool:
+    """Check if comment body contains any external-only trigger phrase (case-insensitive)."""
+    if not comment_body:
+        return False
+    cl = comment_body.lower()
+    return any(p in cl for p in EXTERNAL_TRIGGER_PHRASES)
+
+def _run_and_manage(repo_name, pr_no, clone_url, key, external_only: bool = False):
     ACTIVE_ANALYSES.add(key)
     try:
-        pr_service.analyze_pr(repo_name, pr_no, clone_url)
+        # pass external_only flag to analyze_pr (default behavior unchanged when False)
+        pr_service.analyze_pr(repo_name, pr_no, clone_url, external_only)
     finally:
         try:
             ACTIVE_ANALYSES.remove(key)
@@ -103,7 +121,8 @@ def handle_pr_event():
         # Check comment body for trigger phrases
         comment = payload.get("comment", {})
         comment_body = comment.get("body", "")
-        if not _is_trigger_phrase(comment_body):
+        # Proceed if comment matches either the regular triggers OR explicit external-only triggers
+        if not (_is_trigger_phrase(comment_body) or _is_external_trigger(comment_body)):
             return jsonify({"message": "ignored"}), 200
         
 
@@ -125,8 +144,12 @@ def handle_pr_event():
         
         run_async(notification_service.post_acknowledgement, repo_full_name, pr_number)
 
-        run_async(_run_and_manage, repo_full_name, pr_number, clone_url, key)
-        log.info(f"Queued analysis for {repo_full_name}#{pr_number}")
+        # determine whether this comment requests cross-repo impact only
+        external_only = _is_external_trigger(comment_body)
+
+        # pass external_only flag through to the async runner
+        run_async(_run_and_manage, repo_full_name, pr_number, clone_url, key, external_only)
+        log.info(f"Queued analysis for {repo_full_name}#{pr_number} (external_only={external_only})")
 
         return jsonify({"message": "queued"}), 202
         
