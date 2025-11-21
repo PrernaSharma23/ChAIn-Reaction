@@ -45,6 +45,9 @@ TRIGGER_PHRASES = [
 
 # phrases that explicitly request cross-repo / external-only impact
 EXTERNAL_TRIGGER_PHRASES = [
+    "@ChAIn-Reaction-Bot : cross-repo impact",
+    "@chain-reaction-bot : external impact",
+    "@chain-reaction-bot : external-only",
     "cross-repo impact",
     "cross repo impact",
     "external impact",

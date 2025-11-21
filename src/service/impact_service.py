@@ -41,6 +41,12 @@ class ImpactService:
                 impacted_map[node["uid"]] = node
         return list(impacted_map.values())
     
+    def get_impact(self, delta:dict, external_only:bool=False) -> list[dict]:
+        if external_only:
+            return self.get_impacted_external_graph(delta)
+        else:
+            return self.get_impacted_graph(delta)
+    
     def get_impacted_external_graph(self, delta: dict) -> list[dict]:
         """
         Like get_impacted_graph but only returns external impacted nodes
@@ -51,7 +57,7 @@ class ImpactService:
 
         if not modified_uids:
             log.info("No modified nodes, no external impact")
-            return []
+            return []   
 
         impacted_map = {}
         for uid in modified_uids:
@@ -106,25 +112,32 @@ class ImpactService:
         rel_union = "|".join([r if i == 0 else r for i, r in enumerate(allowed_rels)])
         rel_union = f":{rel_union}"
 
-        query = f"""
-        MATCH (start {{uid: $start_uid}})
-        CALL {{
-            WITH start
-            MATCH p = (start)-[{rel_union}*1..10]->(n)
-            WHERE ALL(x IN nodes(p) WHERE x IS NOT NULL)
-            RETURN DISTINCT n
-        }}
+        query = """
+        MATCH (start {uid: $start_uid})
+        MATCH p = (start)-[rels*1..10]-(n)
+        WHERE n.repo_id IS NOT NULL
+          AND ALL(r IN rels WHERE type(r) IN $allowed_rels)
+          AND ALL(i IN RANGE(0, SIZE(rels)-1) WHERE
+                (
+                  type(rels[i]) = 'CONTAINS'
+                )
+                OR (
+                  (type(rels[i]) = 'DEPENDS_ON' OR type(rels[i]) = 'READS_FROM' OR type(rels[i]) = 'WRITES_TO')
+                  AND endNode(rels[i]) = nodes(p)[i]
+                )
+              )
+          AND ALL(x IN nodes(p) WHERE x IS NOT NULL)
         RETURN DISTINCT n.uid AS uid,
-                       n.name AS name,
-                       n.kind AS kind,
-                       n.repo_id AS repo_id,
-                       n.repo_name AS repo_name,
-                       n.path AS path,
-                       n.language AS language
-        ORDER BY kind, name
+                        n.name AS name,
+                        n.kind AS kind,
+                        n.repo_id AS repo_id,
+                        n.repo_name AS repo_name,
+                        n.path AS path,
+                        n.language AS language,
+                        length(p) AS depth
+        ORDER BY n.repo_id, depth, kind, name
         """
-
-        result = tx.run(query, start_uid=start_uid)
+        result = tx.run(query, start_uid=start_uid, allowed_rels=allowed_rels)
         return [record.data() for record in result]
 
     @staticmethod
@@ -145,10 +158,9 @@ class ImpactService:
           AND ALL(r IN rels WHERE type(r) IN $allowed_rels)
           AND ALL(i IN RANGE(0, SIZE(rels)-1) WHERE
                 (
-                  type(rels[i]) = 'CONTAINS' AND startNode(rels[i]) = nodes(p)[i]
-                )
+                  type(rels[i]) = 'CONTAINS'                 )
                 OR (
-                  (type(rels[i]) = 'DEPENDS_ON' OR type(rels[i]) = 'READS_FROM' OR type(rels[i]) = 'WRITES_TO')
+                  (type(rels[i]) = 'DEPENDS_ON' OR type(rels[i]) = 'READS_FROM' OR type(rels[i]) = 'WRITES_TO' OR type(rels[i]) = 'CONTAINS' )
                   AND endNode(rels[i]) = nodes(p)[i]
                 )
               )

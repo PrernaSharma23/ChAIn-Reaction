@@ -15,8 +15,8 @@ class LLMService:
         self,
         provider: str = "openai",         # "openai" | "gemini"
         model: str = None,                # override default model
-        retries: int = 2,
-        backoff_factor: float = 1.0
+        retries: int = 1,
+        backoff_factor: float = 2.0
     ):
         self.provider = provider.lower()
         self.retries = max(1, int(retries))

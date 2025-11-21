@@ -35,12 +35,13 @@ class CommentNotificationService:
     def post_no_impact_comment(self, repo_full_name: str, pr_number: int) -> bool:
         msg = (
             "## ✅ Impact Analysis — No Impact Detected\n\n"
-            "I ran static dependency and graph-based analysis for the changes in this pull request and did not find any downstream or transitive impacts within the repositories onboarded onto ChAIn-Reaction Platform.\n\n"
+            "I ran static dependency and graph-based analysis for the changes in this pull request and did not find any upstream/downstream or transitive impacts within the repositories onboarded onto ChAIn-Reaction Platform.\n\n"
             "**What this means**\n"
             "- The modified files did not introduce or modify graph nodes that affect other tracked components.\n\n"
             "**If you expected impact**\n"
             "- Ensure the repository is onboarded and up-to-date in the system.\n"
-            "- Trigger a re-analysis by commenting: `@ChAIn-Reaction-Bot : Analyze Impact`\n\n"
+            "- Consider whether the impact analysis scope (intra-repo vs. cross-repo) matches your expectations.\n"
+            "- Trigger a re-analysis by commenting: `@ChAIn-Reaction-Bot : Cross-Repo Impact`\n\n"
         )
         return self.post_impact_comment(repo_full_name, pr_number, msg)
 

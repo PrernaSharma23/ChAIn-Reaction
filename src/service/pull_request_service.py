@@ -43,23 +43,16 @@ class PullRequestService:
             result = self.analyzer.analyze_files(pr_number, files_content, repo)
 
             delta = self._compute_delta(result)
-            log.info(f"Computed delta: {delta}")
+            # log.info(f"Computed delta: {delta}")
 
-            # choose impact calculation based on external_only flag
-            # - external_only True: use the external-only aggregation helper that
-            #   accepts the delta dict and returns only cross-repo impacted nodes
-            # - otherwise, use the regular full impact graph computation
-            if external_only:
-                impacted_nodes = self.impact_service.get_impacted_external_graph(delta)
-            else:
-                impacted_nodes = self.impact_service.get_impacted_graph(delta)
+            impacted_nodes = self.impact_service.get_impact(delta, external_only)
+            log.info(impacted_nodes)
 
             if not impacted_nodes:
                 self.notification_service.post_no_impact_comment(repo_full_name, pr_number)
                 return
 
-            # build base prompt from PromptBuilder
-            base_prompt = PromptBuilder.build_impact_prompt(
+            prompt = PromptBuilder.build_impact_prompt(
                 pr_repo_name=repo_full_name,
                 pr_number=pr_number,
                 delta=delta,
@@ -67,23 +60,6 @@ class PullRequestService:
                 external_only=external_only
             )
 
-            # Prepend a short instruction that tailors the LLM behavior
-            if external_only:
-                header = (
-                    "EXTERNAL-ONLY IMPACT REPORT\n"
-                    "Focus strictly on repositories other than the PR's repo. "
-                    "Do NOT enumerate intra-repo impacted nodes. For each external "
-                    "repo, list repo_id, repo_name and the impacted node UIDs/paths and "
-                    "a short recommended action.\n\n"
-                )
-            else:
-                header = (
-                    "FULL IMPACT REPORT\n"
-                    "Provide an end-to-end impact analysis including intra-repo and cross-repo "
-                    "effects. For changed components, describe the impact surface and suggested actions.\n\n"
-                )
-
-            prompt = header + base_prompt
 
             log.info("Calling LLM for impact analysis...")
             llm_response = self.llm.call(prompt)

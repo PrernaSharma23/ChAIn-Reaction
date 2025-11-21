@@ -5,14 +5,32 @@ from textwrap import dedent
 class PromptBuilder:
 
     @staticmethod
-    def build_impact_prompt(pr_repo_name:str, pr_number:int, delta:dict, impact_nodes:list[dict]) -> str:
+    def build_header(external_only:bool=False) -> str:
+            if external_only:
+               return  (
+                    "EXTERNAL-ONLY IMPACT REPORT\n"
+                    "Focus strictly on repositories other than the PR's repo. "
+                    "Do NOT enumerate intra-repo impacted nodes. For each external "
+                    "repo, list repo_id, repo_name and the impacted node UIDs/paths and "
+                    "a short recommended action.\n\n"
+                )
+            else:
+                return  (
+                    "FULL IMPACT REPORT\n"
+                    "Provide an end-to-end impact analysis including intra-repo and cross-repo "
+                    "effects.\n\n"
+                    "- Keep findings short.\n"
+                    "- No architecture narration.\n\n"
+                )
+            
+
+    @staticmethod
+    def build_impact_prompt(pr_repo_name:str, pr_number:int, delta:dict, impact_nodes:list[dict], external_only:bool=False) -> str:
         """
         Build a model-friendly prompt for generating PR impact analysis.
         """
-
-        added = delta.get("added", [])
-        modified = delta.get("modified", {})
-        deleted = delta.get("deleted", [])
+        header = PromptBuilder.build_header(external_only)
+        updated = delta.get("modified", {})
 
         # Convert impacted nodes into a readable structure
         impacted_summary = [
@@ -22,74 +40,52 @@ class PromptBuilder:
         ]
 
         prompt = dedent(f"""
-        You are an expert software architect and senior code reviewer.
+        You are generating a **short, concise Markdown impact table** based ONLY on the data provided.
+        
+        A pull request **#{pr_number}** was raised in repo **{pr_repo_name}**.  
+        AST diff + Neo4j graph have identified the following changed elements.
 
-        A pull request **#{pr_number}** was raised in repository **{pr_repo_name}**.
-        Static impact analysis has identified changes across files, classes, 
-        and methods using AST diff + Neo4j dependency graph.
-        Generate a **clean, well-structured, GitHub-ready Markdown report** that will be posted as a PR comment.
+        {header}
 
-        ---
-        ## 1. Summary of Graph Delta
-        **Added nodes**: {len(added)}
-        **Modified nodes**: {len(modified)}
-        **Deleted nodes**: {len(deleted)}
+        ## Changed Nodes Count
+        **Modified:** {len(updated)}
 
-        ---
-        ## 2. Impacted Code Elements (from dependency graph)
-        These code elements are directly or transitively impacted:
-
+        ## Impacted Nodes
         {chr(10).join(impacted_summary)}
 
         ---
         ## 3. Your Task
-        Produce a **beautiful, concise Markdown report** with the following sections:
+        Produce a **very short, table-centric GitHub Markdown report** with:
 
-        ### 1. 📝 High-Level Summary
-        - What the change appears to do
-        - The domains or modules involved  
-        - Any architectural observations
+        ### 1. ChAIn Reaction Summary (NO PARAGRAPHS)
+        Columns:
+        - **Area**
+        - **Why Impacted**
+        - **Type of Change**
+        - **Risk Level**
 
-        ### B. Technical Impact
-        - Which services/classes/methods are impacted and why?
-        - How do the changes propagate through dependencies?
-        - What upstream/downstream flows might break  
-        - Any API or contract interactions  
-        - A table summarizing impacted important elements like database tables, API endpoints, or external services touched.
-
-         ### 3. ⚠ Behavioral & Risk Assessment
-        - Runtime behavior implications  
-        - Edge cases, regressions, potential failures  
-        - Performance considerations if applicable
-
-        ### 4. 📦 Data & Integration Impact
-        - DB tables, Kafka topics, configs, external services  
-        - Side-effects on request/response models  
-
-        ### D. Recommendations
-        - Testing guidelines (unit, integration, E2E)
-        - Any required code reviews or validations
-        - Contract/API considerations
-        - Deployment risks
+        ### B. Code Level Impact
+        Columns:
+        - **Kind**
+        - **Name**
+        - **Repo**
+        - **Path**
+        - **Impact Reason**  
+  
 
         ---
-        ### Important: Formatting Requirements
-        - Use **GitHub markdown** features:
-            - `###` headings  
-            - bullet lists  
-            - bold text  
-            - tables  
-            - code blocks  
-            - `<details>` collapsible sections  
-        - Keep the tone professional  
-        - DO NOT hallucinate classes, functions, files, or tables  
-        - Do NOT hallucinate file names or classes not present in the impacted list.
-        - Make inferences ONLY based on the impacted list.
-        - Make the explanation readable for developers & reviewers.
-        
+        ### HARD RULES (STRICT)
+        - NO paragraphs
+        - NO narration
+        - NO inferred APIs, endpoints, controllers, services, DB tables
+        - NO guessing missing info
+        - ONLY summarize items explicitly present in the impacted list
+        - Tables ONLY (no long-form explanation)
+        - Keep everything compact and factual
+        - No made-up architecture or flows
+        - No added context beyond given node attributes
 
-
-        Begin the final formatted Markdown Impact Analysis report now.:
+        Begin generating the FINAL Markdown tables now:
         """)
 
-        return prompt
+        return header + prompt
