@@ -1,7 +1,7 @@
 # ChAIn Reaction - Impact Analysis Platform
 
 > 📚 **Start here**: [Documentation Index](./docs/INDEX.md) for complete guides and API references
-> 📚 **Powerpoint Presentation**: [PPT Slides](./chAIn-reaction.pptx)
+> 📚 **Powerpoint Presentation**: [PPT Slides](./chAIn-reaction.pptx) | [PDF Slides](./chAIn-reaction.pdf)
 
 ## Project Overview
 
