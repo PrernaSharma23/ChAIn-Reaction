@@ -24,10 +24,7 @@ class ImpactService:
         if self.driver:
             self.driver.close()
 
-    # -------------------------------------------------------
     # Get impact of a node by uid
-    # -------------------------------------------------------
-
     def get_impacted_graph(self, delta: dict) -> list[dict]:
         modified_uids = [n["uid"] for n in delta.get("modified", [])]
 
@@ -96,9 +93,7 @@ class ImpactService:
             )
             return result
 
-    # -------------------------------------------------------
     # NEO4J QUERY
-    # -------------------------------------------------------
     @staticmethod
     def _query_impact(tx, start_uid, allowed_rels):
         """

@@ -1,4 +1,3 @@
-# src/extractor/java/java_extractor.py
 import os
 from tree_sitter_languages import get_parser
 from src.extractor.base_extractor import BaseExtractor

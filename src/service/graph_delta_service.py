@@ -12,10 +12,7 @@ class GraphDeltaService:
         pwd = os.getenv("NEO4J_PASS")
         self.driver = GraphDatabase.driver(uri, auth=(user, pwd))
 
-    # -------------------------------------------------------------
     # Neo4j Helpers
-    # -------------------------------------------------------------
-
     def get_node(self, uid: str) -> Dict[str, Any] | None:
         q = """
         MATCH (n {uid:$uid})
@@ -43,10 +40,7 @@ class GraphDeltaService:
         with self.driver.session() as s:
             return [r['uid'] for r in s.run(q, repo_id=repo_id)]
 
-    # -------------------------------------------------------------
     # Delta Logic
-    # -------------------------------------------------------------
-
     def compute_delta(self, pr_nodes: List[dict], pr_edges: List[dict]) -> dict:
         """
         Compute delta between PR analysis and base graph.
@@ -71,7 +65,6 @@ class GraphDeltaService:
             pr_node_map = {n.get("uid"): n for n in pr_nodes if n.get("uid")}
             pr_uids = set(pr_node_map.keys())
 
-            # Fetch existing nodes from base graph using repo_id
             base_uids = set(self.get_repo_nodes(repo_id))
 
             # 1. ADDED: nodes in PR but not in base

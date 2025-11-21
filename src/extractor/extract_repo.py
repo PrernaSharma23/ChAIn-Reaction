@@ -6,9 +6,6 @@ from src.extractor.python.python_extractor import PythonExtractor
 
 
 class ExtractorRouter:
-    """
-    Detects languages and delegates to correct extractor modules.
-    """
 
     def __init__(self):
         self.extractors = [
