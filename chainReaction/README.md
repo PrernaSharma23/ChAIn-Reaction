@@ -1,73 +1,91 @@
-# React + TypeScript + Vite
+# **System Dependency Dashboard**
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A refined and visually captivating interface for exploring complex system-level relationships with elegance and precision. Designed with modern engineering standards, this dashboard transforms dense dependency data into an intuitive, interactive visual narrative.
 
-Currently, two official plugins are available:
+## ✨ **Key Highlights**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Immersive Dependency Visualization** powered by D3 and React Flow  
+- **Effortless Repository Navigation** with elegant UI panels  
+- **Lightning-Fast Rendering** enabled by Vite and TypeScript  
+- **Gracefully Designed Modals & Layouts** using modular SCSS  
+- **Scalable Architecture** crafted for long-term extensibility  
 
-## React Compiler
+## 🛠 **Tech Stack**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Layer          | Tools & Versions |
+|----------------|------------------|
+| Framework      | React **19.2.0**, TypeScript **5.9.3** |
+| Build System   | Vite **7.2.2** |
+| Visualization  | D3 **7.9.0** |
+| Styling        | SCSS (Sass **1.94.0**) |
+| Utilities      | lodash **4.17.21**, Radix React Select **2.2.6** |
+| Routing        | React Router DOM **7.9.5** |
 
-## Expanding the ESLint configuration
+## 📌 **Prerequisites**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Ensure the following before running the project:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Node.js **18+**
+- npm / yarn / pnpm
+- A modern browser (Chrome, Edge, Firefox)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📁 **Project Structure (Overview)**
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+├─ components/
+├─ pages/
+│  ├─ Dashboard/
+│  ├─ LoginPage/
+│  └─ RepoDetails/
+│     ├─ GraphCanvas.tsx
+│     ├─ AddDependencyModal.tsx
+│     ├─ SidePanel.tsx
+├─ data/
+└─ App.tsx
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## ⚙️ **Installation**
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
+
+
+## ▶️ **Usage**
+
+### Start Dev Mode  
+```bash
+npm run dev
+```
+
+## 🖼 **Screenshots**
+
+Add images here:
+
+```
+docs/images/dashboard.png
+docs/images/graph.png
+docs/images/modal.png
+```
+
+## 🔄 **Workflow Snapshot**
+
+```
+User → React App → Graph Engine (D3) → UI Panels & Modals
+``` 
+
+## 🧪 **Testing Recommendations**
+
+Add Vitest + RTL for scalable test coverage:
+
+```bash
+npm install -D vitest @testing-library/react @testing-library/jest-dom
+```
+
+## 🛡 **Troubleshooting**
+
+- **Graph invisible?** Check D3 logs  
+- **SCSS not loading?** Validate imports  
+- **Navigation issues?** Inspect sessionStorage token flow 
