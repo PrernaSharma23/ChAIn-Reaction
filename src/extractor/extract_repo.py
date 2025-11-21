@@ -27,7 +27,6 @@ class ExtractorRouter:
             all_entities.extend(entities)
             all_edges.extend(edges)
 
-        # Ensure repo node exists
         all_entities.append({
             "uid": f"{repo_name}::repo",
             "repo_id": repo_id,

@@ -17,12 +17,11 @@ class GraphNode:
     name: str
     language: str
     path: str
-    meta: str              # JSON string - keeping as string to avoid Neo4j map errors for now
+    meta: str            
     created_at: str
 
     @classmethod
     def from_dict(cls, d: dict):
-        # Accept either 'meta' as dict or string and normalize to string
         meta = d.get("meta", "{}")
         if not isinstance(meta, str):
             try:
@@ -60,7 +59,7 @@ class GraphNode:
 class GraphEdge:
     src: str
     dst: str
-    type: str    # CONTAINS, DEPENDS_ON, READS_FROM, WRITES_TO
+    type: str    
 
     ALLOWED = {"CONTAINS", "DEPENDS_ON", "READS_FROM", "WRITES_TO"}
 
@@ -71,7 +70,6 @@ class GraphEdge:
 
     @classmethod
     def from_tuple(cls, t):
-        # t expected as (src, dst, type)
         return cls(src=t[0], dst=t[1], type=t[2])
     
     def to_dict(self) -> dict:

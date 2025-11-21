@@ -2,19 +2,15 @@ import os
 import time
 import random
 from src.util.logger import log
-
-# OpenAI
 from openai import OpenAI
-
-# Gemini
 from google import genai
 
 
 class LLMService:
     def __init__(
         self,
-        provider: str = "openai",         # "openai" | "gemini"
-        model: str = None,                # override default model
+        provider: str = "openai",         
+        model: str = None,               
         retries: int = 1,
         backoff_factor: float = 2.0
     ):

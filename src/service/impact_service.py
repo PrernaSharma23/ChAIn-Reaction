@@ -3,13 +3,6 @@ from neo4j import GraphDatabase
 from src.util.logger import log
 
 class ImpactService:
-    """
-    Computes the full transitive impact of a changed node:
-    - follows CONTAINS, DEPENDS_ON, READS_FROM, WRITES_TO
-    - works across repositories
-    - prevents cycles
-    """
-
     def __init__(self):
         uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
         user = os.getenv("NEO4J_USER", "neo4j")
@@ -17,14 +10,12 @@ class ImpactService:
 
         self.driver = GraphDatabase.driver(uri, auth=(user, password))
 
-        # All valid actionable relationship types here
         self.allowed_rels = ["CONTAINS", "DEPENDS_ON", "READS_FROM", "WRITES_TO"]
 
     def close(self):
         if self.driver:
             self.driver.close()
 
-    # Get impact of a node by uid
     def get_impacted_graph(self, delta: dict) -> list[dict]:
         modified_uids = [n["uid"] for n in delta.get("modified", [])]
 
@@ -45,11 +36,6 @@ class ImpactService:
             return self.get_impacted_graph(delta)
     
     def get_impacted_external_graph(self, delta: dict) -> list[dict]:
-        """
-        Like get_impacted_graph but only returns external impacted nodes
-        (nodes whose repo_id differs from the start node). Accepts the same
-        delta dict and returns a list[dict] of impacted node records.
-        """
         modified_uids = [n["uid"] for n in delta.get("modified", [])]
 
         if not modified_uids:
@@ -65,12 +51,6 @@ class ImpactService:
     
 
     def get_impacted_nodes(self, start_uid: str):
-        """
-        Returns full transitive impact of a starting node.
-        Uses DFS-like expansion WITHIN Neo4j (no Python loops).
-        Ignores invalid or stray edges automatically.
-        """
-
         with self.driver.session() as session:
             result = session.execute_read(
                 self._query_impact,
@@ -80,11 +60,6 @@ class ImpactService:
             return result
 
     def get_impacted_external_nodes(self, start_uid: str):
-        """
-        Returns impacted nodes reachable from start_uid that belong to a different repo_id than the start node.
-        Same return format as get_impacted_nodes (list of dicts with uid, name, kind, repo_id, repo_name, path, language).
-        Traverses up to 10 hops following only allowed relationship types and prevents cycles.
-        """
         with self.driver.session() as session:
             result = session.execute_read(
                 self._query_external_impact,
@@ -93,17 +68,8 @@ class ImpactService:
             )
             return result
 
-    # NEO4J QUERY
     @staticmethod
     def _query_impact(tx, start_uid, allowed_rels):
-        """
-        - Performs variable-length traversal across ONLY allowed rels
-        - Avoids cycles
-        - Returns ordered, unique nodes
-        - Includes repo-level, file-level, class-level, method-level, table-level nodes
-        """
-
-        # Convert Python list → syntax: [:A|B|C] (only first colon, then pipe without colons)
         rel_union = "|".join([r if i == 0 else r for i, r in enumerate(allowed_rels)])
         rel_union = f":{rel_union}"
 
@@ -137,14 +103,6 @@ class ImpactService:
 
     @staticmethod
     def _query_external_impact(tx, start_uid, allowed_rels):
-        """
-        Find impacted nodes reachable from start_uid that belong to a different repo_id.
-        Enforce directionality per relationship type to follow impact flow:
-          - CONTAINS: follow from container -> contained (startNode(rel) = current node)
-          - DEPENDS_ON, READS_FROM, WRITES_TO: follow from dependent -> dependency
-            so when propagating impact we traverse the relationship in the direction
-            that yields the dependent node (endNode(rel) = next node in path).
-        """
         query = """
         MATCH (start {uid: $start_uid})
         MATCH p = (start)-[rels*1..10]-(n)

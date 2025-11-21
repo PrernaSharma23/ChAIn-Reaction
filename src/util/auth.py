@@ -4,17 +4,11 @@ from src.util.logger import log
 
 
 def get_user_service():
-    """Lazy import to avoid circular dependencies."""
     from src.service.user_service import UserService
     return UserService()
 
 
 def jwt_required(fn):
-    """Decorator to require and validate JWT token in Authorization header.
-    
-    Stores decoded token in g.user for use in the route handler.
-    Returns 401 if token is missing, invalid, or expired.
-    """
     @wraps(fn)
     def wrapper(*args, **kwargs):
         auth_header = request.headers.get("Authorization", "")

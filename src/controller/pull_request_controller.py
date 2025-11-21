@@ -74,7 +74,7 @@ def _is_external_trigger(comment_body: str) -> bool:
     if not comment_body:
         return False
     cl = comment_body.lower()
-    return any(p in cl for p in EXTERNAL_TRIGGER_PHRASES)
+    return cl in EXTERNAL_TRIGGER_PHRASES
 
 def _run_and_manage(repo_name, pr_no, clone_url, key, external_only: bool = False):
     ACTIVE_ANALYSES.add(key)

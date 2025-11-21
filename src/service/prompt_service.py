@@ -26,13 +26,9 @@ class PromptBuilder:
 
     @staticmethod
     def build_impact_prompt(pr_repo_name:str, pr_number:int, delta:dict, impact_nodes:list[dict], external_only:bool=False) -> str:
-        """
-        Build a model-friendly prompt for generating PR impact analysis.
-        """
         header = PromptBuilder.build_header(external_only)
         updated = delta.get("modified", {})
 
-        # Convert impacted nodes into a readable structure
         impacted_summary = [
             f"- [{n['kind']}] {n['name']}  (path: {n['path']})\n"
             f"  from git_repo_name: {n['repo_name']} | repo_id: {n['repo_id']}  |"

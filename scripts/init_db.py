@@ -1,29 +1,14 @@
-#!/usr/bin/env python
-"""Initialize Postgres database and create tables.
-
-Usage:
-  Set DATABASE_URL env var (e.g. postgresql://user:pass@host:port/dbname) then run:
-    python scripts/init_db.py
-
-This script will:
- - connect to Postgres server
- - create the target database if it does not exist
- - import and call create_tables() from src.repository.user_repository
-
-"""
 import os
 import sys
 import urllib.parse
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-# Add project root to sys.path so we can import src module
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
 
 def parse_database_url(db_url: str):
-    # Use urllib to parse the URL
     parsed = urllib.parse.urlparse(db_url)
     username = parsed.username
     password = parsed.password
@@ -43,7 +28,6 @@ def create_database_if_not_exists(db_url: str):
     info = parse_database_url(db_url)
     target_db = info["dbname"]
 
-    # Connect to default 'postgres' database to create the target DB
     admin_conn_str = (
         f"dbname=postgres user={info['username']} password={info['password']} host={info['host']} port={info['port']}"
     )
@@ -54,7 +38,6 @@ def create_database_if_not_exists(db_url: str):
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cur = conn.cursor()
 
-        # Check if database exists
         cur.execute("SELECT 1 FROM pg_database WHERE datname=%s", (target_db,))
         exists = cur.fetchone()
         if exists:
@@ -73,9 +56,7 @@ def create_database_if_not_exists(db_url: str):
 
 
 def create_tables(db_url: str):
-    # Import here so we use the same DATABASE_URL when SQLAlchemy engine is created
     print("Creating tables via SQLAlchemy create_all()...")
-    # Set the env var for the module
     os.environ.setdefault("DATABASE_URL", db_url)
     try:
         from src.repository.user_repository import create_tables as ct

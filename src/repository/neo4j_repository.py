@@ -28,12 +28,10 @@ class Neo4jRepository:
             s.run("CREATE CONSTRAINT IF NOT EXISTS FOR (r:Repo) REQUIRE r.uid IS UNIQUE")
             s.run("CREATE CONSTRAINT IF NOT EXISTS FOR (e:Entity) REQUIRE e.uid IS UNIQUE")
 
-    # PURE INGESTION 
     def store_graph(self, nodes: List[GraphNode], edges: List[GraphEdge]):
         if not nodes:
             return
 
-        # ---- Process Nodes ----
         node_dicts = []
         for n in nodes:
             node_dicts.append({
@@ -72,7 +70,7 @@ class Neo4jRepository:
                     batch=batch
                 )
 
-        # ---- Process Edges ----
+
         with self.driver.session() as session:
             for e in edges:
                 q = f"""
@@ -82,7 +80,7 @@ class Neo4jRepository:
                 """
                 session.run(q, src=e.src, dst=e.dst)
 
-    # READ HELPERS
+
     def get_all_nodes(self):
         q = """
         MATCH (n)
@@ -106,7 +104,7 @@ class Neo4jRepository:
         with self.driver.session() as s:
             s.run("MATCH (n) DETACH DELETE n")
 
-    # REPO-SCOPED
+
     def get_nodes_by_repo(self, repo: str):
         q = """
         MATCH (n {repo:$repo})
@@ -123,7 +121,7 @@ class Neo4jRepository:
         with self.driver.session() as s:
             return [dict(r) for r in s.run(q, repo=repo)]
 
-    # CROSS-REPO-SCOPED
+
     def get_edges_between_repos(self, repo_a: str, repo_b: str):
         q = """
         MATCH (a {repo:$repo_a})-[r]->(b {repo:$repo_b})
@@ -185,7 +183,7 @@ class Neo4jRepository:
             if not rec or not rec.get("a_exists") or not rec.get("b_exists"):
                 return {"error": "one_or_both_nodes_missing"}
 
-        # safe to create edge - we validated type already
+
         q = f"""
         MATCH (a {{uid: $src}})
         MATCH (b {{uid: $dst}})

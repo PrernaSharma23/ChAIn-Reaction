@@ -12,9 +12,6 @@ github_token = os.getenv("GITHUB_TOKEN")
 
 
 class RepoProcessor:
-    """
-    Converts extractor dict output to GraphNode / GraphEdge objects.
-    """
 
     def __init__(self):
         self.router = ExtractorRouter()
@@ -36,9 +33,6 @@ class RepoProcessor:
         return tmp_dir
 
     def process(self, repo_id: str, repo_path: str, repo_name: str) -> Tuple[List[GraphNode], List[GraphEdge]]:
-        """
-        Run extractors then convert raw dicts → GraphNode / GraphEdge.
-        """
         entities_raw, edges_raw = self.router.extract_repo(repo_id, repo_path, repo_name)
 
         node_objs: List[GraphNode] = []

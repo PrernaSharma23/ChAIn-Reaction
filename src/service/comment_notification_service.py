@@ -4,7 +4,6 @@ from src.util.logger import log
 
 
 class CommentNotificationService:
-    """Posts comments on GitHub pull requests."""
 
     def __init__(self):
         self.github_token = os.environ.get("GITHUB_TOKEN")
@@ -46,13 +45,6 @@ class CommentNotificationService:
         return self.post_impact_comment(repo_full_name, pr_number, msg)
 
     def post_impact_comment(self, repo_full_name: str, pr_number: int, comment_text: str) -> bool:
-        """
-        Post a comment on a PR.
-        repo_full_name: e.g., "PrernaSharma23/ChAIn-Reaction"
-        pr_number: PR number, e.g., 1
-        comment_text: Comment body (supports markdown)
-        Returns True on success, False on error.
-        """
         if not self.github_token:
             log.error("GITHUB_TOKEN not configured; cannot post comments")
             return False

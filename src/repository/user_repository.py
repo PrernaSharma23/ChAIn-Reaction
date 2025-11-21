@@ -16,7 +16,7 @@ engine = create_engine(DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Association table for many-to-many between users and repos
+
 user_repos = Table(
     "user_repos",
     Base.metadata,
@@ -93,13 +93,13 @@ class UserRepository:
                 session.flush()
                 is_new = True
             else:
-                # update name if provided and missing or different
+        
                 if repo_name and repo.name != repo_name:
                     repo.name = repo_name
                     session.add(repo)
                     session.flush()
 
-            # only add mapping if repo is not already in user.repos (prevents duplicates)
+    
             if repo not in user.repos:
                 user.repos.append(repo)
                 session.add(user)

@@ -5,7 +5,6 @@ import uuid
 
 import git
 from src.processor.repo_processor import RepoProcessor
-from src.processor.tree_sitter_extractor import TreeSitterExtractor
 from src.util.logger import log
 
 
@@ -27,10 +26,6 @@ class DiffAnalyzerService:
         return tmp_dir
 
     def analyze_files(self, pr_number: int, files_content: dict, repo: dict) -> dict:
-        """
-        files_content: { "rel/path/to/file.py": "file contents", ... }
-        repo: { "id": "<repo_id>", "name": "<repo_name>", "repo_url": "<git clone url>" }
-        """
         repo_id = repo["id"]
         repo_name = repo["name"]
         temp_dir = self.make_tmp_dir(repo_name)
