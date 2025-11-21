@@ -1,6 +1,7 @@
 # ChAIn Reaction - Impact Analysis Platform
 
 > 📚 **Start here**: [Documentation Index](./docs/INDEX.md) for complete guides and API references
+> 📚 **Powerpoint Presentation**: [PPT Slides](./chain_reaction.pptx)
 
 ## Project Overview
 
@@ -247,6 +248,15 @@ python main.py
 
 ---
 
+## UI Dashoard
+
+For UI Dashboard setup & installation refer to **[chainReactionDashboard/README.md](./chainReactionDashboard/README.md)**
+
+
+![Dashboard](./docs/UI_dashboard.jpeg)
+
+---
+
 ## Documentation
 
 Comprehensive documentation is available in the `/docs` folder:
@@ -259,6 +269,7 @@ Comprehensive documentation is available in the `/docs` folder:
 | **[docs/PROJECT_API.md](./docs/PROJECT_API.md)** | Graph management API reference |
 | **[docs/PR_WEBHOOK_API.md](./docs/PR_WEBHOOK_API.md)** | GitHub webhook setup and integration guide |
 | **[docs/USER_API.md](./docs/USER_API.md)** | Authentication API reference |
+| **[chainReactionDashboard/README.md](./chainReactionDashboard/README.md)** | UI Dashboard |
 
 **Recommended reading order**:
 1. [docs/INDEX.md](./docs/INDEX.md) 

@@ -1,6 +1,6 @@
-# **System Dependency Dashboard**
+# **ChAIn-Reaction Dashboard**
 
-A refined and visually captivating interface for exploring complex system-level relationships with elegance and precision. Designed with modern engineering standards, this dashboard transforms dense dependency data into an intuitive, interactive visual narrative.
+A refined and visually captivating interface for exploring complex Cross Repository dependencies with elegance and precision. Designed with modern engineering standards, this dashboard transforms dense dependency data into an intuitive, interactive visual narrative.
 
 ## ✨ **Key Highlights**
 
@@ -62,13 +62,7 @@ npm run dev
 
 ## 🖼 **Screenshots**
 
-Add images here:
-
-```
-docs/images/dashboard.png
-docs/images/graph.png
-docs/images/modal.png
-```
+![Dashboard](../docs/UI_dashboard.jpeg)
 
 ## 🔄 **Workflow Snapshot**
 
