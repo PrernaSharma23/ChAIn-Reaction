@@ -1,0 +1,67 @@
+/* RepoDetails.scss */
+.repo-page-wrapper {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  background: linear-gradient(180deg, #08121a 0%, #0e1b29 100%);
+  overflow: hidden;
+}
+
+/* Loader wrapper */
+.graph-loader {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #0b1622; 
+  color: #bcd5ea;
+  font-family: "Inter", sans-serif;
+}
+
+/* Neon spinner */
+.spinner {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 5px solid rgba(61, 169, 252, 0.2);
+  border-top-color: #3da9fc;
+  animation: spin 0.8s linear infinite, glow 1.2s ease-in-out infinite alternate;
+  margin-bottom: 18px;
+}
+
+/* neon glow animation for spinner */
+@keyframes glow {
+  0% {
+    filter: drop-shadow(0 0 4px #3da9fc);
+  }
+  100% {
+    filter: drop-shadow(0 0 12px #3da9fc);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* subtle loading text animation */
+.graph-loader p {
+  margin-top: 4px;
+  font-size: 15px;
+  opacity: 0.8;
+  letter-spacing: 0.5px;
+  animation: pulseText 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseText {
+  0% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+

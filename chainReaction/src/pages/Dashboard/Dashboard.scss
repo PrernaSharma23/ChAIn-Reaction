@@ -1,0 +1,114 @@
+/* ===== Dashboard Page ===== */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  //overflow: hidden; /* prevents accidental scrollbars */
+}
+.dashboard-container {
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, #0b1622, #0e1b29, #102536);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: sans-serif;
+}
+
+/* Wrapper Panel */
+.dashboard-panel {
+  min-width: 900px;
+  min-height: 520px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(14px);
+  border-radius: 18px;
+  display: flex;
+  padding: 30px 40px 40px 40px;
+  gap: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  animation: fadeIn 0.45s ease-out;
+}
+
+/* ===== LEFT SECTION ===== */
+.left-section {
+  flex: 4;              /* wider left panel */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 100px;    /* move content upward */
+}
+
+.dashboard-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #e4f0fb;
+  margin-bottom: 14px;
+  letter-spacing: 0.4px;
+}
+
+.dashboard-desc {
+  font-size: 16px;
+  color: #c8d5e3;
+  line-height: 1.5;
+  margin-bottom: 38px;
+  max-width: 90%;
+}
+
+/* Dropdown */
+.dropdown-wrapper label {
+  font-size: 15px;
+  color: #d3e2f0;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.dashboard-dropdown {
+  width: 70%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 8px;
+  background: #15293c;
+  border: 1px solid #22415a;
+  color: #e3ecf7;
+  outline: none;
+  transition: 0.25s ease;
+}
+
+.dashboard-dropdown.large {
+  width: 88%;           /* larger dropdown */
+}
+
+.dashboard-dropdown:hover {
+  border-color: #3da9fc;
+}
+
+.dashboard-dropdown:focus {
+  border-color: #3da9fc;
+  box-shadow: 0 0 8px rgba(61, 169, 252, 0.6);
+}
+
+/* ===== RIGHT SECTION ===== */
+.right-graphic {
+  flex: 1.5;            /* smaller svg area */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.illustration {
+  width: 90%;
+  opacity: 0.85;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

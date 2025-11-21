@@ -1,0 +1,230 @@
+/* ============================================
+   OVERLAY + CARD
+============================================ */
+
+.adm-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 10, 18, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: 99999;
+}
+
+.adm-card {
+  width: 500px;
+  max-width: calc(100% - 28px);
+  background: #0b1621;
+  border-radius: 14px;
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  color: #e6f0fb;
+  font-family: Inter, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.adm-title {
+  margin: 0 0 22px 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* ============================================
+   LAYOUT
+============================================ */
+
+.adm-row {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.adm-col {
+  width: 50%;
+}
+
+.adm-label {
+  font-size: 13px;
+  color: #bcd5ea;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* ============================================
+   SELECT WRAPPER (react-select)
+============================================ */
+
+.adm-select-wrapper {
+  margin-top: 6px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+/* control */
+.adm-select-wrapper .react-select__control {
+  background: #071219 !important;
+  border-color: #0f2732 !important;
+  color: #ffffff !important;
+  min-height: 40px;
+  box-shadow: none !important;
+}
+
+/* single value */
+.adm-single-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ffffff;
+}
+
+/* value container */
+.adm-select-wrapper .react-select__value-container {
+  padding: 6px 8px !important;
+  overflow: hidden !important;
+}
+
+/* input */
+.adm-select-wrapper .react-select__input-container {
+  min-width: 0 !important;
+  width: 100% !important;
+  color: #e6f7fb !important;
+}
+
+/* menu */
+.adm-select-wrapper .react-select__menu {
+  background: #071219 !important;
+  border-radius: 8px;
+  border: 1px solid #0f2732 !important;
+  overflow: hidden !important;
+  z-index: 200000 !important;
+  width: 100% !important;
+}
+
+/* menu list */
+.adm-select-wrapper .react-select__menu-list {
+  max-height: 320px !important;
+  padding: 0 !important;
+  background: #071219 !important;
+}
+
+/* option */
+.adm-option {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #e6f7fb;
+}
+
+.adm-select-wrapper .react-select__option {
+  background: #071219 !important;
+  color: #e6f7fb !important;
+  padding: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adm-select-wrapper .react-select__option--is-focused {
+  background: #091826 !important;
+}
+
+/* ============================================
+   NODE DETAILS (READ-ONLY)
+============================================ */
+
+.adm-node-details {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adm-node-details-label {
+  font-size: 12px;
+  color: #bcd5ea;
+}
+
+.adm-node-details-value {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: #e6f0fb;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
+}
+
+/* ============================================
+   DEPENDENCY TYPE
+============================================ */
+
+.adm-deps {
+  margin-bottom: 20px;
+}
+
+.adm-deps-list {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+/* ============================================
+   ACTION BUTTONS
+============================================ */
+
+.adm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.adm-btn-cancel {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e6f0fb;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.adm-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.adm-btn-confirm {
+  background: #00eaff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  color: #071219;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.adm-btn-confirm:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   RESPONSIVE
+============================================ */
+
+@media (max-width: 600px) {
+  .adm-card {
+    width: calc(100% - 20px);
+  }
+
+  .adm-node-details-value {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+}
